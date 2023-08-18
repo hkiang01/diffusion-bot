@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "text-to-image-server"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{ include = "api" }]
+
+[[tool.poetry.source]]
+name = "cu118"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "explicit"
+
+# see https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/ffd13a1d2ed00b2bbcf5d78c2a347313a3b556c8/README.md#%F0%9F%A7%A8-diffusers
+[tool.poetry.dependencies]
+python = "^3.11"
+accelerate = "^0.21.0"
+diffusers = ">=0.19.0"
+fastapi = "^0.101.1"
+invisible-watermark = "^0.2.0"
+safetensors = "^0.3.2"
+transformers = "^4.31.0"
+uvicorn = { extras = ["standard"], version = "^0.23.2" }
+xformers = { version = "*", optional = true }
+
+# see https://pytorch.org/get-started/locally/
+torch = { version = "^2.0.1" }
+# torch = { version = "^2.0.1", source = "cu118" } # gpu
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
