@@ -33,7 +33,7 @@
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postStartCommand": "sudo chown vscode:vscode -R /home/vscode/.cache && sudo chown vscode:vscode -R /workspaces/text-to-image-server/.venv && poetry config virtualenvs.in-project true && poetry install",
+    "postStartCommand": "sudo chown vscode:vscode -R /home/vscode/.cache && sudo chown vscode:vscode -R /workspaces/text-to-image-server/api/.venv && poetry config virtualenvs.in-project true && cd /workspaces/text-to-image-server/api && poetry install",
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
@@ -57,12 +57,12 @@
         // poetry cache for dependencies
         "source=text-to-image-server-poetry-cache,target=/home/vscode/.cache/pypoetry,type=volume,consistency=cached",
         // python virtual environment
-        "source=text-to-image-server-venv-cache,target=/workspaces/text-to-image-server/.venv,type=volume,consistency=cached",
+        "source=text-to-image-server-venv-cache,target=/workspaces/text-to-image-server/api/.venv,type=volume,consistency=cached",
         // models cache
         // see https://huggingface.co/docs/diffusers/v0.19.3/en/api/models/overview#diffusers.ModelMixin.from_pretrained
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache/huggingface,target=/home/vscode/.cache/huggingface,type=bind,consistency=cached",
         // outputs
-        "source=${localWorkspaceFolder}/outputs,target=/workspaces/text-to-image-server/outputs,type=bind,consistency=cached"
+        "source=${localWorkspaceFolder}/api/outputs,target=/workspaces/text-to-image-server/api/outputs,type=bind,consistency=cached"
     ]
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"

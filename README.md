@@ -15,13 +15,14 @@ An API to change text into images using models like [Stable Diffusion XL 1.0]:
     b. Developing locally - Install dependencies using [Poetry](https://python-poetry.org/)
 
     ```zsh
+    cd api
     poetry install
     ```
 
 1. Start the server
 
     ```zsh
-    uvicorn api.main:app --reload
+    ./.venv/bin/uvicorn api.main:app --reload
     ```
 
 1. Navigate to http://localhost:8000/docs#/default/predict_predict_post, click "Try it Out", modify the `"prompt"`, then click `"Execute"`
@@ -66,7 +67,7 @@ An API to change text into images using models like [Stable Diffusion XL 1.0]:
 
 The whole code base is extensible. If you implement another subclass of `Model`:
 - the API automatically adds it as another model able to be used in the dropdown of `/docs`
-- the tests in `./tests/models/model_test.py` is automacially parameterized such that you can run `predict()` in the debugger without any additional code
+- the tests in `./api/tests/models/model_test.py` is automacially parameterized such that you can run `predict()` in the debugger without any additional code
 
 [Stable Diffusion XL 1.0]: https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/ffd13a1d2ed00b2bbcf5d78c2a347313a3b556c8/README.md#sd-xl-10-base-model-card
 [Install the NVIDIA Container Toolkit]: https://github.com/devcontainers/features/tree/f90cb26c7f15659f3e2be8061295997df2bb76cc/src/nvidia-cuda#install-the-nvidia-container-toolkit
