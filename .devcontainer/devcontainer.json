@@ -14,6 +14,7 @@
     "features": {
         "ghcr.io/devcontainers-contrib/features/fzf:1": {},
         "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {},
+        "ghcr.io/devcontainers/features/docker-in-docker": {},
         "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
             // current version of kubectl on cluster
             "version": "1.27",
@@ -41,6 +42,7 @@
                 "codezombiech.gitignore",
                 "eamodio.gitlens",
                 "exiasr.hadolint",
+                "ms-azuretools.vscode-docker",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "ms-vsliveshare.vsliveshare",
                 "ms-python.black-formatter",
