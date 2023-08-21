@@ -22,7 +22,7 @@ An API to change text into images using models like [Stable Diffusion XL 1.0]:
 1. Start the server
 
     ```zsh
-    ./.venv/bin/uvicorn api.main:app --reload
+    ./.venv/bin/python api/main.py
     ```
 
 1. Navigate to http://localhost:8000/docs#/default/predict_predict_post, click "Try it Out", modify the `"prompt"`, then click `"Execute"`
