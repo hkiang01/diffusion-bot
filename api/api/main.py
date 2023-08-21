@@ -3,9 +3,11 @@ import uuid
 from http import HTTPStatus
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 
-from api.schemas import Model, ModelsEnum, PredictRequest
+from api.tasks import PredictTaskQueue
+from api.schemas import PredictTaskSubmission, PredictTaskStatus
+import uvicorn
 
 app = FastAPI(
     title="Text to Image Server",
@@ -17,40 +19,33 @@ async def ping():
     return "pong"
 
 
-@app.post("/predict")
-async def predict(predict_request: PredictRequest) -> RedirectResponse:
-    model = predict_request.model
-    model_instance = _get_model_class(requested_model=model)
-    model_instance.load()
-    image = model_instance.predict(
-        prompt=predict_request.prompt,
-        width=predict_request.width,
-        height=predict_request.height,
-        num_inference_steps=predict_request.num_inference_steps,
-    )
-    image_id = model_instance.saveImage(image=image)
-    return RedirectResponse(
-        url=f"/image/{model}/{image_id}", status_code=HTTPStatus.FOUND
+@app.post("/predict", status_code=HTTPStatus.ACCEPTED)
+async def predict(
+    predict_request: PredictTaskSubmission,
+) -> uuid.UUID:
+    submission_id = PredictTaskQueue.submit(predict_request=predict_request)
+    return PlainTextResponse(
+        content=str(submission_id),
+        status_code=HTTPStatus.ACCEPTED,
     )
 
 
-@app.get("/image/{model}/{image_id}")
-async def image(model: ModelsEnum, image_id: uuid.UUID) -> FileResponse:
-    model_instance = _get_model_class(requested_model=model)
-    image_path = model_instance.image_path(image_id=image_id)
+# status
+@app.get("/status")
+async def status(submission_id: uuid.UUID) -> PredictTaskStatus:
+    return PredictTaskQueue.status(submission_id=submission_id)
+
+
+@app.get("/result/{model}/{image_id}")
+async def result(submission_id: uuid.UUID) -> FileResponse:
+    image_path = PredictTaskQueue.image_path(image_id=submission_id)
     if not os.path.exists(path=image_path):
         return PlainTextResponse(
-            f"Image {image_id} for model {model} does not exist",
+            f"Image {submission_id} for does not exist",
             status_code=404,
         )
     return FileResponse(image_path)
 
 
-def _get_model_class(requested_model: ModelsEnum) -> Model:
-    model_class = next(
-        cls
-        for cls in Model.__subclasses__()
-        if cls.__name__.lower() == requested_model
-    )
-    model: Model = model_class()
-    return model
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
