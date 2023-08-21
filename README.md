@@ -2,7 +2,7 @@
 
 An API to change text into images using models like [Stable Diffusion XL 1.0]:
 
-![/predict endpoint in Swagger with a dog generated using Text to Image Server](docs/images/api_dog.png)
+![A crowd encircling a huge skyscraper in a large city](docs/images/end_stage_capitalism.png)
 
 ## Getting started
 

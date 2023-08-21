@@ -11,13 +11,16 @@ model_subclasses = [cls.__name__ for cls in Model.__subclasses__()]
 ModelsEnum = enum.StrEnum(Model.__name__, model_subclasses)
 
 
-class PredictTask(pydantic.BaseModel):
-    task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
+class PredictTaskRequest(pydantic.BaseModel):
     model: ModelsEnum
     prompt: str
     width: pydantic.PositiveInt = 1024
     height: pydantic.PositiveInt = 1024
     num_inference_steps: pydantic.PositiveInt = 20
+
+
+class PredictTask(PredictTaskRequest):
+    task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
 
 
 class PredictTaskStatus(enum.StrEnum):

@@ -1,8 +1,8 @@
 import logging
 import os
+import queue
 import threading
 import uuid
-from queue import Queue
 
 from api.models.model import Model
 from api.schemas import (
@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class _PredictTaskQueue(ImageUtilsMixin):
-    def __init__(self, num_worker_threads: int = 1):
-        self.queue: Queue[PredictTask] = Queue()
+    def __init__(self, num_worker_threads: int = 1, max_size: int = 10):
+        self.queue: queue.Queue[PredictTask] = queue.Queue(maxsize=max_size)
+
         self.submission_stats: dict[uuid.UUID, PredictTaskStatus] = {}
 
         for _ in range(0, num_worker_threads):
@@ -26,8 +27,13 @@ class _PredictTaskQueue(ImageUtilsMixin):
 
     def submit(self, predict_task: PredictTask) -> uuid.UUID:
         logger.info(f"Submitting {predict_task.task_id}")
-        self.submission_stats[predict_task.task_id] = PredictTaskStatus.PENDING
         self.queue.put_nowait(predict_task)
+        try:
+            self.submission_stats[
+                predict_task.task_id
+            ] = PredictTaskStatus.PENDING
+        except queue.Full:
+            raise queue.Full("At max capacity. Try again later")
         return predict_task.task_id
 
     def status(self, submission_id: uuid.UUID) -> PredictTaskInfo:

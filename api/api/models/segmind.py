@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 MODEL = "segmind/small-sd"
 
 
-class Segmind(Model):
+class SegmindSmallSD(Model):
     def __init__(self):
         self.pipe: DiffusionPipeline
 

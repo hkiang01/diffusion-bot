@@ -7,10 +7,10 @@
         // Path is relative to the devcontainer.json file.
         "dockerfile": "Dockerfile"
     },
-    // "runArgs": [
-    //     "--gpus",
-    //     "all"
-    // ],
+    "runArgs": [
+        "--gpus",
+        "all"
+    ],
     "features": {
         "ghcr.io/devcontainers-contrib/features/fzf:1": {},
         "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {},
@@ -63,7 +63,9 @@
         // see https://huggingface.co/docs/diffusers/v0.19.3/en/api/models/overview#diffusers.ModelMixin.from_pretrained
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache/huggingface,target=/home/vscode/.cache/huggingface,type=bind,consistency=cached",
         // outputs
-        "source=${localWorkspaceFolder}/api/outputs,target=/workspaces/text-to-image-server/api/outputs,type=bind,consistency=cached"
+        "source=${localWorkspaceFolder}/api/outputs,target=/workspaces/text-to-image-server/api/outputs,type=bind,consistency=cached",
+        // node modules
+        "source=${localWorkspaceFolder}/bot/node_modules,target=/workspaces/text-to-image-server/bot/node_modules,type=bind,consistency=cached"
     ]
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"

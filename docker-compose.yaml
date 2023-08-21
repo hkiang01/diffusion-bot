@@ -4,8 +4,15 @@ services:
     build: api
     restart: on-failure
     ports:
-      - 8000:8000
+      - 8000:80
     volumes:
       - ~/.cache/huggingface:/app/.cache/huggingface
-      - ./api/outputs:/app/api/outputs
+      - ./api/outputs:/app/outputs
       - ./api/api:/app/api
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

@@ -1,18 +1,15 @@
+import http
 import os
+import queue
 import uuid
-from http import HTTPStatus
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse, PlainTextResponse
-
-from api.tasks import PredictTaskQueue
-from api.schemas import (
-    PredictTask,
-    PredictTaskInfo,
-)
+import fastapi
 import uvicorn
 
-app = FastAPI(
+import api.schemas
+import api.tasks
+
+app = fastapi.FastAPI(
     title="Text to Image Server",
 )
 
@@ -22,32 +19,48 @@ async def ping():
     return "pong"
 
 
-@app.post("/predict", status_code=HTTPStatus.ACCEPTED)
+@app.post("/predict", status_code=http.HTTPStatus.ACCEPTED)
 async def predict(
-    predict_task: PredictTask,
+    predict_task_request: api.schemas.PredictTaskRequest,
 ) -> uuid.UUID:
-    submission_id = PredictTaskQueue.submit(predict_task=predict_task)
-    return PlainTextResponse(
+    predict_task = api.schemas.PredictTask(
+        model=predict_task_request.model,
+        prompt=predict_task_request.prompt,
+        width=predict_task_request.width,
+        height=predict_task_request.height,
+        num_inference_steps=predict_task_request.num_inference_steps,
+    )
+    try:
+        submission_id = api.tasks.PredictTaskQueue.submit(
+            predict_task=predict_task
+        )
+    except queue.Full as exc:
+        raise fastapi.exceptions.HTTPException(
+            detail=str(exc),
+            status_code=http.HTTPStatus.TOO_MANY_REQUESTS,
+            headers={"Retry-After": "60"},
+        )
+    return fastapi.responses.PlainTextResponse(
         content=str(submission_id),
-        status_code=HTTPStatus.ACCEPTED,
+        status_code=http.HTTPStatus.ACCEPTED,
     )
 
 
 # status
 @app.get("/status")
-async def status(submission_id: uuid.UUID) -> PredictTaskInfo:
-    return PredictTaskQueue.status(submission_id=submission_id)
+async def status(submission_id: uuid.UUID) -> api.schemas.PredictTaskInfo:
+    return api.tasks.PredictTaskQueue.status(submission_id=submission_id)
 
 
-@app.get("/result/{model}/{image_id}")
-async def result(submission_id: uuid.UUID) -> FileResponse:
-    image_path = PredictTaskQueue.image_path(image_id=submission_id)
+@app.get("/result/{submission_id}")
+async def result(submission_id: uuid.UUID) -> fastapi.responses.FileResponse:
+    image_path = api.tasks.PredictTaskQueue.image_path(image_id=submission_id)
     if not os.path.exists(path=image_path):
-        return PlainTextResponse(
-            f"Image {submission_id} for does not exist",
+        return fastapi.responses.PlainTextResponse(
+            f"Image {submission_id} does not exist",
             status_code=404,
         )
-    return FileResponse(image_path)
+    return fastapi.responses.FileResponse(image_path)
 
 
 if __name__ == "__main__":
