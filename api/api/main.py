@@ -7,8 +7,8 @@ from fastapi.responses import FileResponse, PlainTextResponse
 
 from api.tasks import PredictTaskQueue
 from api.schemas import (
+    PredictTask,
     PredictTaskInfo,
-    PredictTaskSubmission,
 )
 import uvicorn
 
@@ -24,9 +24,9 @@ async def ping():
 
 @app.post("/predict", status_code=HTTPStatus.ACCEPTED)
 async def predict(
-    predict_request: PredictTaskSubmission,
+    predict_task: PredictTask,
 ) -> uuid.UUID:
-    submission_id = PredictTaskQueue.submit(predict_request=predict_request)
+    submission_id = PredictTaskQueue.submit(predict_task=predict_task)
     return PlainTextResponse(
         content=str(submission_id),
         status_code=HTTPStatus.ACCEPTED,

@@ -8,7 +8,6 @@ from api.models.model import Model
 from api.schemas import (
     ModelsEnum,
     PredictTaskInfo,
-    PredictTaskSubmission,
     PredictTask,
     PredictTaskStatus,
 )
@@ -25,15 +24,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
         for _ in range(0, num_worker_threads):
             threading.Thread(target=self._worker).start()
 
-    def submit(self, predict_request: PredictTaskSubmission) -> uuid.UUID:
-        predict_task = PredictTask(
-            model=predict_request.model,
-            prompt=predict_request.prompt,
-            width=predict_request.width,
-            height=predict_request.height,
-            num_inference_steps=predict_request.num_inference_steps,
-        )
-
+    def submit(self, predict_task: PredictTask) -> uuid.UUID:
         logger.info(f"Submitting {predict_task.task_id}")
         self.submission_stats[predict_task.task_id] = PredictTaskStatus.PENDING
         self.queue.put_nowait(predict_task)
