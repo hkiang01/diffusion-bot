@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 import uuid
 from queue import Queue
@@ -43,7 +44,14 @@ class _PredictTaskQueue(ImageUtilsMixin):
             status = self.submission_stats[submission_id]
             position = list(self.submission_stats.keys()).index(submission_id)
         except KeyError:
-            return PredictTaskInfo()
+            image_path = self.image_path(image_id=submission_id)
+            if os.path.exists(path=image_path):
+                return PredictTaskInfo(
+                    position=0, status=PredictTaskStatus.COMPLETE
+                )
+            else:
+                return PredictTaskInfo()
+
         return PredictTaskInfo(position=position, status=status)
 
     def _predict(self, predict_task: PredictTask):
@@ -68,9 +76,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
             self._predict(predict_task=predict_task)
             logger.info(f"Completed {predict_task.task_id}")
             self.queue.task_done()
-            self.submission_stats[
-                predict_task.task_id
-            ] = PredictTaskStatus.COMPLETE
+            del self.submission_stats[predict_task.task_id]
 
 
 def _get_model_class(requested_model: ModelsEnum) -> Model:
