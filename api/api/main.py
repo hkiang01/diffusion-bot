@@ -6,7 +6,10 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, PlainTextResponse
 
 from api.tasks import PredictTaskQueue
-from api.schemas import PredictTaskSubmission, PredictTaskStatus
+from api.schemas import (
+    PredictTaskInfo,
+    PredictTaskSubmission,
+)
 import uvicorn
 
 app = FastAPI(
@@ -32,7 +35,7 @@ async def predict(
 
 # status
 @app.get("/status")
-async def status(submission_id: uuid.UUID) -> PredictTaskStatus:
+async def status(submission_id: uuid.UUID) -> PredictTaskInfo:
     return PredictTaskQueue.status(submission_id=submission_id)
 
 

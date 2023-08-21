@@ -28,3 +28,8 @@ class PredictTaskStatus(enum.StrEnum):
     PROCESSING = "PROCESSING"
     COMPLETE = "COMPLETE"
     NOT_FOUND = "NOT FOUND"
+
+
+class PredictTaskInfo(pydantic.BaseModel):
+    position: int = 0
+    status: PredictTaskStatus = PredictTaskStatus.NOT_FOUND

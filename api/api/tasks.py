@@ -6,6 +6,7 @@ from queue import Queue
 from api.models.model import Model
 from api.schemas import (
     ModelsEnum,
+    PredictTaskInfo,
     PredictTaskSubmission,
     PredictTask,
     PredictTaskStatus,
@@ -37,12 +38,13 @@ class _PredictTaskQueue(ImageUtilsMixin):
         self.queue.put_nowait(predict_task)
         return predict_task.task_id
 
-    def status(self, submission_id: uuid.UUID) -> PredictTaskStatus:
+    def status(self, submission_id: uuid.UUID) -> PredictTaskInfo:
         try:
             status = self.submission_stats[submission_id]
+            position = list(self.submission_stats.keys()).index(submission_id)
         except KeyError:
-            return PredictTaskStatus.NOT_FOUND
-        return status
+            return PredictTaskInfo()
+        return PredictTaskInfo(position=position, status=status)
 
     def _predict(self, predict_task: PredictTask):
         model = predict_task.model
