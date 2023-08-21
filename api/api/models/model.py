@@ -25,9 +25,10 @@ class Model(ABC, ImageUtilsMixin):
     def _speedup(self, pipe: DiffusionPipeline):
         # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#speed
         if torch.cuda.is_available():
+            logger.debug("using gpu")
+
             # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
             torch.backends.cuda.matmul.allow_tf32 = True
-            logger.debug("using gpu")
             pipe.to("cuda")
 
             # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings

@@ -2,8 +2,10 @@ version: '3.8'
 services:
   api:
     build: api
+    restart: on-failure
     ports:
       - 8000:8000
     volumes:
       - ~/.cache/huggingface:/app/.cache/huggingface
       - ./api/outputs:/app/api/outputs
+      - ./api/api:/app/api
