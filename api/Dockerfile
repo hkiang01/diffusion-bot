@@ -23,4 +23,4 @@ RUN addgroup --gid 1000 app
 RUN adduser app --home /app --uid 1000 --gid 1000 --no-create-home --disabled-password
 USER 1000
 
-CMD /app/.venv/bin/python app/main.py
+CMD /app/.venv/bin/python api/main.py
