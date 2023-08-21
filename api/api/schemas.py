@@ -13,6 +13,6 @@ ModelsEnum = enum.StrEnum(Model.__name__, model_subclasses)
 class PredictRequest(pydantic.BaseModel):
     model: ModelsEnum
     prompt: str
-    width: pydantic.PositiveInt = 512
-    height: pydantic.PositiveInt = 512
+    width: pydantic.PositiveInt = 1024
+    height: pydantic.PositiveInt = 1024
     num_inference_steps: pydantic.PositiveInt = 20
