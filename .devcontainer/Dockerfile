@@ -12,7 +12,6 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node LTS
-# see https://nodejs.org/en/download/package-manager#debian-and-ubuntu-based-linux-distributions
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - &&\
-    apt-get install -y nodejs
+# Install nvm
+# see https://github.com/nvm-sh/nvm#installing-and-updating
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash

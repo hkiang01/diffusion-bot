@@ -34,12 +34,13 @@
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postStartCommand": "sudo chown vscode:vscode -R /home/vscode/.cache && sudo chown vscode:vscode -R /workspaces/text-to-image-server/api/.venv && poetry config virtualenvs.in-project true && cd /workspaces/text-to-image-server/api && poetry install",
+    "postStartCommand": "sudo chown vscode:vscode -R /home/vscode/.cache && sudo chown vscode:vscode -R /workspaces/text-to-image-server/api/.venv && poetry config virtualenvs.in-project true && cd /workspaces/text-to-image-server/api && poetry install; bash -i -c 'cd /workspaces/text-to-image-server/bot && nvm install && nvm use && npm install'",
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
             "extensions": [
                 "codezombiech.gitignore",
+                "dbaeumer.vscode-eslint",
                 "eamodio.gitlens",
                 "ms-azuretools.vscode-docker",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",

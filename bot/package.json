@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "build": "tsc --outDir dist",
-    "start": "node dist/app.js",
+    "start": "node dist/app.js"
   },
   "keywords": [],
   "author": "",
