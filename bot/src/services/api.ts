@@ -22,9 +22,9 @@ async function getModels(): Promise<string[]> {
 export class PredictTaskRequest {
     model!: string
     prompt!: string
-    width?: number | null = 512
-    height?: number | null = 512
-    num_inference_steps?: number | null = 20
+    width!: number
+    height!: number
+    num_inference_steps!: number
 }
 
 async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof uuidv4> {
@@ -33,18 +33,30 @@ async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof u
     return data
 }
 
-async function status(submissionId: string): Promise<string> {
+export enum PredictTaskStatus {
+    PENDING = "PENDING",
+    PROCESSING = "PROCESSING",
+    COMPLETE = "COMPLETE",
+    NOT_FOUND = "NOT FOUND"
+}
+
+export type PredictTaskInfo = {
+    position: number,
+    status: PredictTaskStatus
+}
+
+async function status(submissionId: typeof uuidv4): Promise<PredictTaskInfo> {
     const config: AxiosRequestConfig = {
         params: {
             'submission_id': submissionId
         }
     }
-    const resp = await http.get<string>('/status', config)
+    const resp = await http.get<PredictTaskInfo>('/status', config)
     const data = resp.data;
     return data
 }
 
-async function result(submissionId: string): Promise<Blob> {
+async function result(submissionId: typeof uuidv4): Promise<Blob> {
     const config: AxiosRequestConfig = {
         params: {
             'submission_id': submissionId

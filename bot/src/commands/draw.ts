@@ -20,7 +20,7 @@ export const buildDrawSubcommand = async () => {
       option
         .setName("model")
         .setDescription("The text to image model to draw with")
-        .setRequired(false)
+        .setRequired(true)
         .addChoices(
           ...models
         )
