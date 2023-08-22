@@ -52,7 +52,7 @@ async def status(submission_id: uuid.UUID) -> api.schemas.PredictTaskInfo:
     return api.tasks.PredictTaskQueue.status(submission_id=submission_id)
 
 
-@app.get("/result/{submission_id}")
+@app.get("/result")
 async def result(submission_id: uuid.UUID) -> fastapi.responses.FileResponse:
     image_path = api.tasks.PredictTaskQueue.image_path(image_id=submission_id)
     if not os.path.exists(path=image_path):

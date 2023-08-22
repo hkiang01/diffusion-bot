@@ -1,12 +1,14 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { AttachmentBuilder, ChatInputCommandInteraction, Embed, EmbedBuilder } from "discord.js";
+import wait from 'node:timers/promises';
 import { Commands } from "../constants";
-import API, { PredictTaskRequest, PredictTaskStatus } from '../services/api'
+import API, { PredictTaskRequest, PredictTaskStatus } from '../services/api';
 
 export async function drawHandler(interaction: ChatInputCommandInteraction) {
     await interaction.reply({ ephemeral: true, fetchReply: true, content: `⌛ ${Commands.Draw} processing` });
+    const prompt = interaction.options.getString("prompt", true)
     const predictTaskRequest: PredictTaskRequest = {
         model: interaction.options.getString("model", true),
-        prompt: interaction.options.getString("prompt", true),
+        prompt: prompt,
         width: interaction.options.getInteger("width", false) || 512,
         height: interaction.options.getInteger("height", false) || 512,
         num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
@@ -15,10 +17,18 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
     console.log('submissionId', submissionId)
     let status: PredictTaskStatus
     do {
+        await wait.setTimeout(4000);
         const statusResp = await API.status(submissionId)
         status = statusResp.status
         console.log(`status of ${submissionId}`, statusResp)
-        await new Promise(resolve => setTimeout(resolve, 5000));
-    } while (status in [PredictTaskStatus.PENDING, PredictTaskStatus.PROCESSING])
-    // const result = await API.result(submissionId)
+    } while (status != PredictTaskStatus.COMPLETE)
+    const bufferResolvable = await API.result(submissionId)
+
+    // see https://discordjs.guide/popular-topics/embeds.html#attaching-images
+    const file = new AttachmentBuilder(bufferResolvable)
+    const embed = new EmbedBuilder()
+        .setTitle(prompt)
+        .setImage(`attachment://${submissionId}.png`)
+
+    await interaction.editReply({ embeds: [embed], files: [file] })
 }

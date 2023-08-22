@@ -17,6 +17,8 @@ export const apiURL = process.env.API_URL;
 if (!apiURL) throw Error("API_URL must be defined");
 export const API_URL: string = apiURL;
 
+export const OUTPUTS_DIR = 'outputs'
+
 export const COMMAND_NAME = 'text-to-image'
 export enum Commands {
     Draw = 'draw',
