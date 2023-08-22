@@ -24,5 +24,30 @@ export const buildDrawSubcommand = async () => {
         .addChoices(
           ...models
         )
-    );
+    )
+    .addIntegerOption(option =>
+      option
+        .setName("width")
+        .setDescription("Width of image")
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(1920)
+    )
+    .addIntegerOption(option =>
+      option
+        .setName("height")
+        .setDescription("Height of image")
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(1920)
+    )
+    .addIntegerOption(option =>
+      option
+        .setName("num_inference_steps")
+        .setDescription("Number of inference steps")
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(20)
+    )
+    ;
 }
