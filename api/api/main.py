@@ -47,7 +47,7 @@ async def predict(
 # status
 @app.get("/status")
 async def status(
-    task_id: uuid.UUID, response: fastapi.Response
+    task_id: uuid.UUID,
 ) -> api.schemas.PredictTaskState:
     try:
         task_info = api.tasks.PredictTaskQueue.status(task_id=task_id)
