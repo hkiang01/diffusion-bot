@@ -23,6 +23,8 @@ logger.setLevel(os.getenv("LOG_LEVEL", logging.WARNING))
 class _PredictTaskQueue(ImageUtilsMixin):
     def __init__(self, max_size: int = 10):
         self._queue: queue.Queue[PredictTask] = queue.Queue(maxsize=max_size)
+
+        self._states_lock = threading.Lock()
         self._states: dict[uuid.UUID, PredictTaskState] = {}
         self._current_task: uuid.UUID
 
@@ -35,7 +37,8 @@ class _PredictTaskQueue(ImageUtilsMixin):
             task_info = PredictTaskState(
                 predict_task=predict_task, stage=PredictTaskStage.PENDING
             )
-            self._states[predict_task.task_id] = task_info
+            with self._states_lock:
+                self._states[predict_task.task_id] = task_info
         except queue.Full:
             raise queue.Full("At max capacity. Try again later")
         return predict_task.task_id
@@ -44,9 +47,10 @@ class _PredictTaskQueue(ImageUtilsMixin):
         self, submission_id: uuid.UUID
     ) -> PredictTaskState | os.PathLike[str]:
         try:
-            state = self._states[submission_id]
-            position = list(self._states.keys()).index(submission_id)
-            state.position = position
+            with self._states_lock:
+                state = self._states[submission_id]
+                position = list(self._states.keys()).index(submission_id)
+                state.position = position
         except KeyError as exc:
             image_path = self.image_path(image_id=submission_id)
             if os.path.exists(path=image_path):
@@ -68,11 +72,13 @@ class _PredictTaskQueue(ImageUtilsMixin):
         state = self._states[self._current_task]
 
         def _callback(step: int, timestep: int, latents: torch.FloatTensor):
-            state.percent_complete = (
-                step / state.predict_task.num_inference_steps * 100
-            )
+            with self._states_lock:
+                state.percent_complete = (
+                    step / state.predict_task.num_inference_steps * 100
+                )
+                self._states[self._current_task] = state
 
-            logger.warning(f"state: {state}")
+                logger.warning(f"states: {self._states}")
 
         image = model_instance.predict(
             prompt=predict_task.prompt,
@@ -88,16 +94,19 @@ class _PredictTaskQueue(ImageUtilsMixin):
             predict_task = self._queue.get()
 
             logger.info(f"Starting {predict_task}")
-            state = self._states[predict_task.task_id]
-            state.stage = PredictTaskStage.PROCESSING
-            state.position = 0
+            with self._states_lock:
+                state = self._states[predict_task.task_id]
+                state.stage = PredictTaskStage.PROCESSING
+                state.position = 0
             self._current_task = state.predict_task.task_id
 
             self._predict(predict_task=predict_task)
 
             logger.info(f"Completed {predict_task.task_id}")
             self._queue.task_done()
-            del self._states[predict_task.task_id]
+
+            with self._states_lock:
+                del self._states[predict_task.task_id]
 
 
 def _get_model_class(requested_model: ModelsEnum) -> Model:
