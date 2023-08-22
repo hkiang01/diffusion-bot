@@ -1,8 +1,9 @@
 import logging
+import typing
 
 import torch
-from diffusers import DiffusionPipeline
-from PIL.Image import Image
+import diffusers
+import PIL.Image
 
 from api.models.model import Model
 
@@ -14,14 +15,14 @@ MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
 
 class StableDiffusionXL(Model):
     def __init__(self):
-        self.pipe: DiffusionPipeline
+        self.pipe: diffusers.StableDiffusionXLPipeline
 
     def load(self):
         ##############
         # load model #
         ##############
         # see https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/ffd13a1d2ed00b2bbcf5d78c2a347313a3b556c8/README.md#sd-xl-10-base-model-card  # noqa: E501
-        pipe: DiffusionPipeline = DiffusionPipeline.from_pretrained(
+        pipe = diffusers.StableDiffusionPipeline.from_pretrained(
             MODEL,
             # speedup
             # see https://huggingface.co/docs/diffusers/optimization/fp16#half-precision-weights
@@ -35,7 +36,7 @@ class StableDiffusionXL(Model):
         #####################
         # some speedup code #
         #####################
-        self._speedup(pipe=pipe)
+        self.speedup(pipe=pipe)
         self.pipe = pipe
 
     def predict(
@@ -44,14 +45,18 @@ class StableDiffusionXL(Model):
         width: int,
         height: int,
         num_inference_steps: int,
-    ) -> Image:
+        callback: typing.Optional[
+            typing.Callable[[int, int, torch.FloatTensor], None]
+        ] = None,
+    ) -> PIL.Image.Image:
         ##########################
         # actually use the model #
         ##########################
-        image: Image = self.pipe(
+        image: PIL.Image.Image = self.pipe(
             prompt=prompt,
             num_inference_steps=num_inference_steps,
             width=width,
             height=height,
+            callback=callback,
         ).images[0]
         return image

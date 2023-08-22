@@ -4,76 +4,100 @@ import queue
 import threading
 import uuid
 
+import torch
+import fastapi.logger
+
 from api.models.model import Model
 from api.schemas import (
     ModelsEnum,
-    PredictTaskInfo,
+    PredictTaskState,
     PredictTask,
-    PredictTaskStatus,
+    PredictTaskStage,
 )
 from api.utils.image import ImageUtilsMixin
 
-logger = logging.getLogger(__name__)
+logger = fastapi.logger.logger
+logger.setLevel(os.getenv("LOG_LEVEL", logging.WARNING))
 
 
 class _PredictTaskQueue(ImageUtilsMixin):
-    def __init__(self, num_worker_threads: int = 1, max_size: int = 10):
-        self.queue: queue.Queue[PredictTask] = queue.Queue(maxsize=max_size)
+    def __init__(self, max_size: int = 10):
+        self._queue: queue.Queue[PredictTask] = queue.Queue(maxsize=max_size)
+        self._states: dict[uuid.UUID, PredictTaskState] = {}
+        self._current_task: uuid.UUID
 
-        self.submission_stats: dict[uuid.UUID, PredictTaskStatus] = {}
-
-        for _ in range(0, num_worker_threads):
-            threading.Thread(target=self._worker).start()
+        threading.Thread(target=self._worker).start()
 
     def submit(self, predict_task: PredictTask) -> uuid.UUID:
         logger.info(f"Submitting {predict_task.task_id}")
-        self.queue.put_nowait(predict_task)
+        self._queue.put_nowait(predict_task)
         try:
-            self.submission_stats[
-                predict_task.task_id
-            ] = PredictTaskStatus.PENDING
+            task_info = PredictTaskState(
+                predict_task=predict_task, stage=PredictTaskStage.PENDING
+            )
+            self._states[predict_task.task_id] = task_info
         except queue.Full:
             raise queue.Full("At max capacity. Try again later")
         return predict_task.task_id
 
-    def status(self, submission_id: uuid.UUID) -> PredictTaskInfo:
+    def status(
+        self, submission_id: uuid.UUID
+    ) -> PredictTaskState | os.PathLike[str]:
         try:
-            status = self.submission_stats[submission_id]
-            position = list(self.submission_stats.keys()).index(submission_id)
-        except KeyError:
+            state = self._states[submission_id]
+            position = list(self._states.keys()).index(submission_id)
+            state.position = position
+        except KeyError as exc:
             image_path = self.image_path(image_id=submission_id)
             if os.path.exists(path=image_path):
-                return PredictTaskInfo(
-                    position=0, status=PredictTaskStatus.COMPLETE
-                )
+                return image_path
             else:
-                return PredictTaskInfo()
+                raise exc
 
-        return PredictTaskInfo(position=position, status=status)
+        return PredictTaskState(
+            position=position,
+            predict_task=state.predict_task,
+            stage=state.stage,
+        )
 
     def _predict(self, predict_task: PredictTask):
         model = predict_task.model
-        model_instance = _get_model_class(requested_model=model)
+        model_instance: Model = _get_model_class(requested_model=model)
         model_instance.load()
+
+        state = self._states[self._current_task]
+
+        def _callback(step: int, timestep: int, latents: torch.FloatTensor):
+            state.percent_complete = (
+                step / state.predict_task.num_inference_steps * 100
+            )
+
+            logger.warning(f"state: {state}")
+
         image = model_instance.predict(
             prompt=predict_task.prompt,
             width=predict_task.width,
             height=predict_task.height,
             num_inference_steps=predict_task.num_inference_steps,
+            callback=_callback,
         )
         self.saveImage(image=image, image_id=predict_task.task_id)
 
     def _worker(self):
         while True:
-            predict_task = self.queue.get()
+            predict_task = self._queue.get()
+
             logger.info(f"Starting {predict_task}")
-            self.submission_stats[
-                predict_task.task_id
-            ] = PredictTaskStatus.PROCESSING
+            state = self._states[predict_task.task_id]
+            state.stage = PredictTaskStage.PROCESSING
+            state.position = 0
+            self._current_task = state.predict_task.task_id
+
             self._predict(predict_task=predict_task)
+
             logger.info(f"Completed {predict_task.task_id}")
-            self.queue.task_done()
-            del self.submission_stats[predict_task.task_id]
+            self._queue.task_done()
+            del self._states[predict_task.task_id]
 
 
 def _get_model_class(requested_model: ModelsEnum) -> Model:

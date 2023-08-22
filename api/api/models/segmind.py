@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import torch
 from diffusers import DiffusionPipeline
@@ -34,7 +35,7 @@ class SegmindSmallSD(Model):
         #####################
         # some speedup code #
         #####################
-        self._speedup(pipe=pipe)
+        self.speedup(pipe=pipe)
         self.pipe = pipe
 
     def predict(
@@ -43,6 +44,9 @@ class SegmindSmallSD(Model):
         width: int,
         height: int,
         num_inference_steps: int,
+        callback: typing.Optional[
+            typing.Callable[[int, int, torch.FloatTensor], None]
+        ] = None,
     ) -> Image:
         ##########################
         # actually use the model #
@@ -52,5 +56,6 @@ class SegmindSmallSD(Model):
             num_inference_steps=num_inference_steps,
             width=width,
             height=height,
+            callback=callback,
         ).images[0]
         return image

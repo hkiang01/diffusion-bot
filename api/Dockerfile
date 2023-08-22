@@ -23,4 +23,4 @@ RUN addgroup --gid 1000 app
 RUN adduser app --home /app --uid 1000 --gid 1000 --no-create-home --disabled-password
 USER 1000
 
-CMD .venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 80 --reload
+CMD .venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 80

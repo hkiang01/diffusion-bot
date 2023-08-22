@@ -4,7 +4,6 @@ import fs from 'fs'
 import { OpenAPIV3_1 } from 'openapi-types';
 import { v4 as uuidv4 } from 'uuid';
 import { API_URL, OUTPUTS_DIR } from '../constants';
-import { BufferResolvable } from 'discord.js';
 const http = axios.create({
     baseURL: API_URL
 })
@@ -58,7 +57,7 @@ async function status(submissionId: typeof uuidv4): Promise<PredictTaskInfo> {
     return data
 }
 
-async function result(submissionId: typeof uuidv4): Promise<BufferResolvable> {
+async function result(submissionId: typeof uuidv4): Promise<string> {
     const path = `${OUTPUTS_DIR}/${submissionId}.png`;
 
     const config: AxiosRequestConfig = {

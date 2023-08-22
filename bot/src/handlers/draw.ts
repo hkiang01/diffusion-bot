@@ -2,6 +2,7 @@ import { AttachmentBuilder, ChatInputCommandInteraction, EmbedBuilder } from "di
 import wait from 'node:timers/promises';
 import { Commands } from "../constants";
 import API, { PredictTaskRequest, PredictTaskStatus } from '../services/api';
+import fs from 'fs'
 
 export async function drawHandler(interaction: ChatInputCommandInteraction) {
     const prompt = interaction.options.getString("prompt", true)
@@ -22,13 +23,16 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
         status = statusResp.status
         console.log(`status of ${submissionId}`, statusResp)
     } while (status != PredictTaskStatus.COMPLETE)
-    const bufferResolvable = await API.result(submissionId)
+    const path = await API.result(submissionId)
 
     // see https://discordjs.guide/popular-topics/embeds.html#attaching-images
-    const file = new AttachmentBuilder(bufferResolvable)
+    const file = new AttachmentBuilder(path)
     const embed = new EmbedBuilder()
         .setTitle(prompt)
         .setImage(`attachment://${submissionId}.png`)
 
     await interaction.editReply({ content: null, embeds: [embed], files: [file] })
+
+    // cleanup
+    await new Promise(resolve => fs.unlink(path, resolve))
 }

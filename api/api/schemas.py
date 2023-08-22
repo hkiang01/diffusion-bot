@@ -23,13 +23,15 @@ class PredictTask(PredictTaskRequest):
     task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
 
 
-class PredictTaskStatus(enum.StrEnum):
+class PredictTaskStage(enum.StrEnum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     COMPLETE = "COMPLETE"
     NOT_FOUND = "NOT FOUND"
 
 
-class PredictTaskInfo(pydantic.BaseModel):
-    position: int = 0
-    status: PredictTaskStatus = PredictTaskStatus.NOT_FOUND
+class PredictTaskState(pydantic.BaseModel):
+    predict_task: PredictTask
+    stage: PredictTaskStage = PredictTaskStage.NOT_FOUND
+    percent_complete: pydantic.confloat(ge=0, le=100) = 0
+    position: int = -1

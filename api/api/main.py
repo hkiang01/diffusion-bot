@@ -4,6 +4,8 @@ import queue
 import uuid
 
 import fastapi
+import starlette.datastructures
+import starlette.types
 import uvicorn
 
 import api.schemas
@@ -48,8 +50,25 @@ async def predict(
 
 # status
 @app.get("/status")
-async def status(submission_id: uuid.UUID) -> api.schemas.PredictTaskInfo:
-    return api.tasks.PredictTaskQueue.status(submission_id=submission_id)
+async def status(
+    submission_id: uuid.UUID, response: fastapi.Response
+) -> api.schemas.PredictTaskState:
+    try:
+        task_info = api.tasks.PredictTaskQueue.status(
+            submission_id=submission_id
+        )
+    except KeyError:
+        raise fastapi.exceptions.HTTPException(
+            status_code=http.HTTPStatus.NOT_FOUND,
+            detail=api.schemas.PredictTaskStage.NOT_FOUND,
+        )
+
+    if isinstance(task_info, str):
+        return fastapi.responses.RedirectResponse(
+            f"/result?submission_id={submission_id}"
+        )
+
+    return task_info
 
 
 @app.get("/result")

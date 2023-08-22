@@ -1,16 +1,15 @@
 import logging
-from abc import ABC
-
+import abc
 import torch
-from diffusers import DiffusionPipeline
-from PIL.Image import Image
-
-from api.utils.image import ImageUtilsMixin
+import diffusers
+import PIL.Image
+import typing
+import api.utils.image
 
 logger = logging.getLogger(__name__)
 
 
-class Model(ABC, ImageUtilsMixin):
+class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     def __init__(self):
         pass
 
@@ -18,11 +17,18 @@ class Model(ABC, ImageUtilsMixin):
         raise NotImplementedError()
 
     def predict(
-        self, prompt: str, width: int, height: int, num_inference_steps: int
-    ) -> Image:
+        self,
+        prompt: str,
+        width: int,
+        height: int,
+        num_inference_steps: int,
+        callback: typing.Optional[
+            typing.Callable[[int, int, torch.FloatTensor], None]
+        ] = None,
+    ) -> PIL.Image.Image:
         raise NotImplementedError()
 
-    def _speedup(self, pipe: DiffusionPipeline):
+    def speedup(self, pipe: diffusers.DiffusionPipeline):
         # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#speed
         if torch.cuda.is_available():
             logger.debug("using gpu")
