@@ -16,3 +16,10 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
+  bot:
+    build: bot
+    depends_on:
+      - api
+    env_file: bot/.env
+    environment:
+      API_URL: http://api:80
