@@ -62,6 +62,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
             position=position,
             predict_task=state.predict_task,
             stage=state.stage,
+            percent_complete=state.percent_complete,
         )
 
     def _predict(self, predict_task: PredictTask):
