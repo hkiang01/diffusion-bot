@@ -74,5 +74,13 @@ async def result(task_id: uuid.UUID) -> fastapi.responses.FileResponse:
     return fastapi.responses.FileResponse(image_path)
 
 
+@app.delete("/result")
+async def delete_result(task_id: uuid.UUID) -> str:
+    image_path = api.tasks.PredictTaskQueue.image_path(image_id=task_id)
+    if os.path.exists(image_path):
+        os.unlink(image_path)
+    return "deleted"
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
