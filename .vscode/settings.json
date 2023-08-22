@@ -1,8 +1,14 @@
 {
+    "editor.formatOnSave": true,
+    "eslint.enable": true,
+    "eslint.workingDirectories": [
+        "${workspaceFolder}/bot"
+    ],
     "python.testing.pytestArgs": [
         "api/tests"
     ],
-    "python.testing.cwd": "${workspaceFolder}",
+    "python.testing.cwd": "${workspaceFolder}/api",
+    "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "jest.rootPath": "${workspaceFolder}/bot"
 }

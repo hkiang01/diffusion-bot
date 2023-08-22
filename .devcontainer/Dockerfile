@@ -15,3 +15,4 @@ RUN apt-get update \
 # Install nvm
 # see https://github.com/nvm-sh/nvm#installing-and-updating
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+RUN bash -i -c 'nvm install --lts'
