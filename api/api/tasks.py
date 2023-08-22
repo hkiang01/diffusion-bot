@@ -44,15 +44,15 @@ class _PredictTaskQueue(ImageUtilsMixin):
         return predict_task.task_id
 
     def status(
-        self, submission_id: uuid.UUID
+        self, task_id: uuid.UUID
     ) -> PredictTaskState | os.PathLike[str]:
         try:
             with self._states_lock:
-                state = self._states[submission_id]
-                position = list(self._states.keys()).index(submission_id)
+                state = self._states[task_id]
+                position = list(self._states.keys()).index(task_id)
                 state.position = position
         except KeyError as exc:
-            image_path = self.image_path(image_id=submission_id)
+            image_path = self.image_path(image_id=task_id)
             if os.path.exists(path=image_path):
                 return image_path
             else:
@@ -78,8 +78,6 @@ class _PredictTaskQueue(ImageUtilsMixin):
                     step / state.predict_task.num_inference_steps * 100
                 )
                 self._states[self._current_task] = state
-
-                logger.warning(f"states: {self._states}")
 
         image = model_instance.predict(
             prompt=predict_task.prompt,

@@ -4,8 +4,6 @@ import queue
 import uuid
 
 import fastapi
-import starlette.datastructures
-import starlette.types
 import uvicorn
 
 import api.schemas
@@ -33,9 +31,7 @@ async def predict(
         num_inference_steps=predict_task_request.num_inference_steps,
     )
     try:
-        submission_id = api.tasks.PredictTaskQueue.submit(
-            predict_task=predict_task
-        )
+        task_id = api.tasks.PredictTaskQueue.submit(predict_task=predict_task)
     except queue.Full as exc:
         raise fastapi.exceptions.HTTPException(
             detail=str(exc),
@@ -43,7 +39,7 @@ async def predict(
             headers={"Retry-After": "60"},
         )
     return fastapi.responses.PlainTextResponse(
-        content=str(submission_id),
+        content=str(task_id),
         status_code=http.HTTPStatus.ACCEPTED,
     )
 
@@ -51,12 +47,10 @@ async def predict(
 # status
 @app.get("/status")
 async def status(
-    submission_id: uuid.UUID, response: fastapi.Response
+    task_id: uuid.UUID, response: fastapi.Response
 ) -> api.schemas.PredictTaskState:
     try:
-        task_info = api.tasks.PredictTaskQueue.status(
-            submission_id=submission_id
-        )
+        task_info = api.tasks.PredictTaskQueue.status(task_id=task_id)
     except KeyError:
         raise fastapi.exceptions.HTTPException(
             status_code=http.HTTPStatus.NOT_FOUND,
@@ -64,19 +58,17 @@ async def status(
         )
 
     if isinstance(task_info, str):
-        return fastapi.responses.RedirectResponse(
-            f"/result?submission_id={submission_id}"
-        )
+        return fastapi.responses.RedirectResponse(f"/result?task_id={task_id}")
 
     return task_info
 
 
 @app.get("/result")
-async def result(submission_id: uuid.UUID) -> fastapi.responses.FileResponse:
-    image_path = api.tasks.PredictTaskQueue.image_path(image_id=submission_id)
+async def result(task_id: uuid.UUID) -> fastapi.responses.FileResponse:
+    image_path = api.tasks.PredictTaskQueue.image_path(image_id=task_id)
     if not os.path.exists(path=image_path):
         return fastapi.responses.PlainTextResponse(
-            f"Image {submission_id} does not exist",
+            f"Image {task_id} does not exist",
             status_code=404,
         )
     return fastapi.responses.FileResponse(image_path)
