@@ -9,13 +9,13 @@ services:
       - ~/.cache/huggingface:/app/.cache/huggingface
       - ./api/outputs:/app/outputs
       - ./api/api:/app/api
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
   bot:
     build: bot
     depends_on:
