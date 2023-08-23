@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     def __init__(self):
-        pass
+        self.pipe: diffusers.DiffusionPipeline
 
     def load(self):
         raise NotImplementedError()
