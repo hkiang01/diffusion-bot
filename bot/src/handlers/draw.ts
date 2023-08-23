@@ -9,8 +9,8 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
     const predictTaskRequest: PredictTaskRequest = {
         model: interaction.options.getString("model", true),
         prompt: prompt,
-        width: interaction.options.getInteger("width", false) || 512,
-        height: interaction.options.getInteger("height", false) || 512,
+        width: interaction.options.getInteger("width", false) || 1024,
+        height: interaction.options.getInteger("height", false) || 1024,
         num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
     }
     const submissionId = await API.predict(predictTaskRequest)
