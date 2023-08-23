@@ -20,6 +20,7 @@ services:
       LOG_LEVEL: DEBUG
   bot:
     build: bot
+    restart: on-failure
     depends_on:
       - api
     volumes:
