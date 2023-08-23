@@ -3,7 +3,6 @@ import { COMMAND_NAME, Commands } from './constants';
 import { drawHandler } from './handlers/draw';
 
 export async function interactionHandler(interaction: Interaction) {
-
     // ensure that:
     // i) the interaction was not issued by a bot,
     // ii) the interaction is indeed a command,
@@ -28,5 +27,4 @@ export async function interactionHandler(interaction: Interaction) {
         console.error(err);
         await interaction.followUp({ ephemeral: true, content: `Error, contact bot developers\n${err}` });
     }
-
 }
