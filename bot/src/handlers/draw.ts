@@ -1,9 +1,7 @@
 import { AttachmentBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import fs from 'fs';
-import wait from 'node:timers/promises';
 import { Commands } from "../constants";
-import API, { PredictTaskRequest, PredictTaskState } from '../services/api';
-import { AxiosError, AxiosResponse } from "axios";
+import API, { PredictTaskRequest } from '../services/api';
 
 export async function drawHandler(interaction: ChatInputCommandInteraction) {
     const prompt = interaction.options.getString("prompt", true)
@@ -17,20 +15,6 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
     }
     const submissionId = await API.predict(predictTaskRequest)
     console.log('submissionId', submissionId)
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        await wait.setTimeout(4000);
-        let statusResp: AxiosResponse
-        try {
-            statusResp = await API.status(submissionId)
-        } catch (error) {
-            if (error instanceof AxiosError && error.response?.status == 303) break
-            throw error
-        }
-        const status = statusResp.data as PredictTaskState;
-        console.log("status", status)
-    }
 
     const path = await API.result(submissionId)
 

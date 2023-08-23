@@ -1,9 +1,11 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Readable } from 'stream'
-import fs from 'fs'
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import fs from 'fs';
+import wait from 'node:timers/promises';
 import { OpenAPIV3_1 } from 'openapi-types';
+import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
 import { API_URL, OUTPUTS_DIR } from '../constants';
+
 const http = axios.create({
     baseURL: API_URL
 })
@@ -53,25 +55,32 @@ export class PredictTaskState {
     position!: number
 }
 
-async function status(submissionId: typeof uuidv4): Promise<AxiosResponse<PredictTaskState | string>> {
+
+async function result(submissionId: typeof uuidv4): Promise<string> {
     const config: AxiosRequestConfig = {
         maxRedirects: 0,
         params: {
             'task_id': submissionId
         }
     }
-    return await http.get<PredictTaskState | string>('/status', config)
-}
 
-async function result(submissionId: typeof uuidv4): Promise<string> {
-    const path = `${OUTPUTS_DIR}/${submissionId}.png`;
-
-    const config: AxiosRequestConfig = {
-        params: {
-            'task_id': submissionId
-        },
-        responseType: 'stream'
+    // poll for duration of prediction
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        await wait.setTimeout(4000);
+        try {
+            await http.get<PredictTaskState>('/status', config)
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status == 303) {
+                break
+            }
+            throw error
+        }
     }
+
+    // get result
+    const path = `${OUTPUTS_DIR}/${submissionId}.png`;
+    config.responseType = 'stream'
     const { data } = await http.get<Readable>('/result', config)
     const writeStream = fs.createWriteStream(path)
     const stream = data.pipe(writeStream)
@@ -94,7 +103,6 @@ const API = {
     getModels,
     predict,
     result,
-    status
 }
 
 export default API
