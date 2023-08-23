@@ -99,7 +99,13 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 state.position = 0
             self._current_task = state.predict_task.task_id
 
-            self._predict(predict_task=predict_task)
+            try:
+                self._predict(predict_task=predict_task)
+            except Exception as exc:
+                logger.exception(
+                    msg=f"Error while processing PredictTask {predict_task}",
+                    exc_info=exc,
+                )
 
             logger.info(f"Completed {predict_task.task_id}")
             self._queue.task_done()

@@ -15,14 +15,14 @@ MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
 
 class StableDiffusionXL(Model):
     def __init__(self):
-        self.pipe: diffusers.StableDiffusionXLPipeline
+        self.pipe: diffusers.DiffusionPipeline
 
     def load(self):
         ##############
         # load model #
         ##############
         # see https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/ffd13a1d2ed00b2bbcf5d78c2a347313a3b556c8/README.md#sd-xl-10-base-model-card  # noqa: E501
-        pipe = diffusers.StableDiffusionPipeline.from_pretrained(
+        pipe = diffusers.DiffusionPipeline.from_pretrained(
             MODEL,
             # speedup
             # see https://huggingface.co/docs/diffusers/optimization/fp16#half-precision-weights
