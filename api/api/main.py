@@ -58,7 +58,10 @@ async def status(
         )
 
     if isinstance(task_info, str):
-        return fastapi.responses.RedirectResponse(f"/result?task_id={task_id}")
+        return fastapi.responses.RedirectResponse(
+            url=f"/result?task_id={task_id}",
+            status_code=http.HTTPStatus.SEE_OTHER,
+        )
 
     return task_info
 

@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Readable } from 'stream'
 import fs from 'fs'
 import { OpenAPIV3_1 } from 'openapi-types';
@@ -20,12 +20,12 @@ async function getModels(): Promise<string[]> {
     }
 }
 
-export class PredictTaskRequest {
-    model!: string
-    prompt!: string
-    width!: number
-    height!: number
-    num_inference_steps!: number
+export type PredictTaskRequest = {
+    model: string,
+    prompt: string,
+    width: number,
+    height: number,
+    num_inference_steps: number
 }
 
 async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof uuidv4> {
@@ -34,27 +34,33 @@ async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof u
     return data
 }
 
-export enum PredictTaskStatus {
+
+interface PredictTask extends PredictTaskRequest {
+    task_id: string,
+}
+
+export enum PredictTaskStage {
     PENDING = "PENDING",
     PROCESSING = "PROCESSING",
     COMPLETE = "COMPLETE",
     NOT_FOUND = "NOT FOUND"
 }
 
-export type PredictTaskInfo = {
-    position: number,
-    status: PredictTaskStatus
+export class PredictTaskState {
+    predict_task!: PredictTask
+    stage!: PredictTaskStage
+    percent_complete!: number
+    position!: number
 }
 
-async function status(submissionId: typeof uuidv4): Promise<PredictTaskInfo> {
+async function status(submissionId: typeof uuidv4): Promise<AxiosResponse<PredictTaskState | string>> {
     const config: AxiosRequestConfig = {
+        maxRedirects: 0,
         params: {
-            'submission_id': submissionId
+            'task_id': submissionId
         }
     }
-    const resp = await http.get<PredictTaskInfo>('/status', config)
-    const data = resp.data;
-    return data
+    return await http.get<PredictTaskState | string>('/status', config)
 }
 
 async function result(submissionId: typeof uuidv4): Promise<string> {
@@ -62,7 +68,7 @@ async function result(submissionId: typeof uuidv4): Promise<string> {
 
     const config: AxiosRequestConfig = {
         params: {
-            'submission_id': submissionId
+            'task_id': submissionId
         },
         responseType: 'stream'
     }
@@ -73,7 +79,18 @@ async function result(submissionId: typeof uuidv4): Promise<string> {
     return path
 }
 
+async function deleteResult(submissionId: typeof uuidv4): Promise<void> {
+    const config: AxiosRequestConfig = {
+        params: {
+            'task_id': submissionId
+        },
+        responseType: 'stream'
+    }
+    await http.delete<Readable>('/result', config)
+}
+
 const API = {
+    deleteResult,
     getModels,
     predict,
     result,

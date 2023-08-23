@@ -172,11 +172,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-/api/outputs
-!/api/outputs/.gitkeep
-/bot/outputs
-!/bot/outputs/.gitkeep
-
 # Logs
 logs
 *.log
@@ -307,3 +302,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+/api/outputs
+!/api/outputs/.gitkeep
+/bot/outputs
+!/bot/outputs/.gitkeep
+

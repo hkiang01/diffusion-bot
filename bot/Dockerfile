@@ -11,7 +11,7 @@ RUN npm ci
 
 # compile project
 COPY tsconfig.json ./
-COPY src ./src
+COPY src src
 RUN npm run-script build
 
 # non-root user
