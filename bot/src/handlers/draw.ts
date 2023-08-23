@@ -1,7 +1,7 @@
 import { AttachmentBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import fs from 'fs';
 import { Commands } from "../constants";
-import API, { PredictTaskRequest } from '../services/api';
+import API, { PredictTaskRequest, PredictTaskState } from '../services/api';
 
 export async function drawHandler(interaction: ChatInputCommandInteraction) {
     const prompt = interaction.options.getString("prompt", true)
@@ -14,9 +14,21 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
         num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
     }
     const submissionId = await API.predict(predictTaskRequest)
-    console.log('submissionId', submissionId)
+    const start = new Date().getTime()
+    const callback = async (state: PredictTaskState) => {
+        const timeElapsed = (new Date().getTime() - start) / 1000;
+        const embed = new EmbedBuilder()
+            .setTitle(prompt)
+            .setFields([
+                { name: "Position in queue", value: state.position.toString() },
+                { name: "Percent complete", value: `${state.percent_complete.toString()}%` },
+                { name: "Time elapsed", value: `${timeElapsed} seconds` },
 
-    const path = await API.result(submissionId)
+            ])
+        await interaction.editReply({ embeds: [embed] })
+    }
+
+    const path = await API.result(submissionId, callback)
 
     // see https://discordjs.guide/popular-topics/embeds.html#attaching-images
     const file = new AttachmentBuilder(path)
@@ -24,7 +36,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
         .setTitle(prompt)
         .setImage(`attachment://${submissionId}.png`)
 
-    await interaction.editReply({ content: null, embeds: [embed], files: [file] })
+    await interaction.editReply({ embeds: [embed], files: [file] })
 
     // cleanup
     await new Promise(resolve => fs.unlink(path, resolve))

@@ -11,7 +11,10 @@ const http = axios.create({
 })
 
 async function getModels(): Promise<string[]> {
-    const resp = await http.get<OpenAPIV3_1.Document>('/openapi.json')
+    const config: AxiosRequestConfig = {
+        timeout: 30 * 1000
+    }
+    const resp = await http.get<OpenAPIV3_1.Document>('/openapi.json', config)
     const openAPISchema = resp.data
     const schemas = openAPISchema.components?.schemas;
     if (schemas) {
@@ -56,7 +59,7 @@ export class PredictTaskState {
 }
 
 
-async function result(submissionId: typeof uuidv4): Promise<string> {
+async function result(submissionId: typeof uuidv4, callback?: (state: PredictTaskState) => unknown): Promise<string> {
     const config: AxiosRequestConfig = {
         maxRedirects: 0,
         params: {
@@ -69,7 +72,8 @@ async function result(submissionId: typeof uuidv4): Promise<string> {
     while (true) {
         await wait.setTimeout(4000);
         try {
-            await http.get<PredictTaskState>('/status', config)
+            const state = await http.get<PredictTaskState>('/status', config)
+            if (callback) callback(state.data)
         } catch (error) {
             if (error instanceof AxiosError && error.response?.status == 303) {
                 break
