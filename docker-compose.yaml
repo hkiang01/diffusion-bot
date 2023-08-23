@@ -22,6 +22,8 @@ services:
     build: bot
     depends_on:
       - api
+    volumes:
+      - ./bot/outputs:/app/outputs
     env_file: bot/.env
     environment:
       API_URL: http://api:80
