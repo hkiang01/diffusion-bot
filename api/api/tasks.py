@@ -30,7 +30,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
         self._states: dict[uuid.UUID, PredictTaskState] = {}
 
         self._currently_loaded_model_lock = threading.Lock()
-        self._currently_loaded_model: ModelsEnum
+        self._currently_loaded_model: ModelsEnum = None
 
         threading.Thread(target=self._worker).start()
 
