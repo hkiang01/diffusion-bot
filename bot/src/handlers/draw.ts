@@ -25,7 +25,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
                 { name: "Time elapsed", value: `${timeElapsed} seconds` },
 
             ])
-        await interaction.editReply({ embeds: [embed] })
+        await interaction.editReply({ content: null, embeds: [embed] })
     }
 
     const path = await API.result(submissionId, callback)
@@ -36,7 +36,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
         .setTitle(prompt)
         .setImage(`attachment://${submissionId}.png`)
 
-    await interaction.editReply({ embeds: [embed], files: [file] })
+    await interaction.editReply({ content: null, embeds: [embed], files: [file] })
 
     // cleanup
     await new Promise(resolve => fs.unlink(path, resolve))
