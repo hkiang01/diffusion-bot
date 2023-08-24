@@ -32,6 +32,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
 
         ])
     const message: Message = await channel.send({ embeds: [initialEmbed] })
+    await deferredReply.delete()
 
     const callback = async (state: PredictTaskState) => {
         const timeElapsed = (new Date().getTime() - start) / 1000;
@@ -60,7 +61,6 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
     await message.edit({ content: null, embeds: [embed], files: [file] })
 
     // cleanup
-    await deferredReply.delete()
     await new Promise(resolve => fs.unlink(path, resolve))
     await API.deleteResult(submissionId)
 }
