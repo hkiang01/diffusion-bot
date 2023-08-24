@@ -4,7 +4,6 @@ import queue
 import threading
 import uuid
 
-import diffusers
 import fastapi.logger
 import torch
 
@@ -25,16 +24,9 @@ class _PredictTaskQueue(ImageUtilsMixin):
     def __init__(self, max_size: int = 10):
         self._queue: queue.Queue[PredictTask] = queue.Queue(maxsize=max_size)
 
-        self._current_task: uuid.UUID
-
         self._states_lock = threading.Lock()
         self._states: dict[uuid.UUID, PredictTaskState] = {}
-
-        self._currently_loaded_model_lock = threading.Lock()
-        self._currently_loaded_model: ModelsEnum = None
-        self._currently_loaded_model_pipeline: diffusers.DiffusionPipeline = (
-            None
-        )
+        self._current_task: uuid.UUID
 
         threading.Thread(target=self._worker).start()
 
@@ -75,17 +67,8 @@ class _PredictTaskQueue(ImageUtilsMixin):
 
     def _predict(self, predict_task: PredictTask):
         model = predict_task.model
-        model_instance: Model = _get_model_instance(requested_model=model)
-
-        with self._currently_loaded_model_lock:
-            if (
-                self._currently_loaded_model
-                and model == self._currently_loaded_model
-            ):
-                model_instance.pipe = self._currently_loaded_model_pipeline
-            else:
-                model_instance.load()
-                self._currently_loaded_model_pipeline = model_instance.pipe
+        model_instance: Model = _get_model_class(requested_model=model)
+        model_instance.load()
 
         state = self._states[self._current_task]
 
@@ -131,7 +114,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 del self._states[predict_task.task_id]
 
 
-def _get_model_instance(requested_model: ModelsEnum) -> Model:
+def _get_model_class(requested_model: ModelsEnum) -> Model:
     model_class = next(
         cls
         for cls in Model.__subclasses__()
