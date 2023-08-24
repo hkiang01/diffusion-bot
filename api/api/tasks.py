@@ -67,7 +67,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
 
     def _predict(self, predict_task: PredictTask):
         model = predict_task.model
-        model_instance: Model = _get_model_class(requested_model=model)
+        model_instance: Model = _get_model_instance(requested_model=model)
         model_instance.load()
 
         state = self._states[self._current_task]
@@ -114,7 +114,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 del self._states[predict_task.task_id]
 
 
-def _get_model_class(requested_model: ModelsEnum) -> Model:
+def _get_model_instance(requested_model: ModelsEnum) -> Model:
     model_class = next(
         cls
         for cls in Model.__subclasses__()
