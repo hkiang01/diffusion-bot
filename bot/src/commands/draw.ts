@@ -31,7 +31,7 @@ export const buildDrawSubcommand = async () => {
         .setDescription("Width of image")
         .setRequired(false)
         .setMinValue(1)
-        .setMaxValue(1920)
+        .setMaxValue(2560)
     )
     .addIntegerOption(option =>
       option
@@ -39,7 +39,7 @@ export const buildDrawSubcommand = async () => {
         .setDescription("Height of image")
         .setRequired(false)
         .setMinValue(1)
-        .setMaxValue(1920)
+        .setMaxValue(1440)
     )
     .addIntegerOption(option =>
       option
