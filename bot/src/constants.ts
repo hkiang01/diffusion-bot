@@ -19,7 +19,7 @@ export const API_URL: string = apiURL;
 
 export const OUTPUTS_DIR = 'outputs'
 
-export const COMMAND_NAME = 'text-to-image'
+export const COMMAND_NAME = 'diffusion-bot'
 export enum Commands {
     Draw = 'draw',
 }
