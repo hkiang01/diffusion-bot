@@ -79,6 +79,17 @@ Prerequisites:
     ./.venv/Scripts/uvicorn.exe api.main:app --port 8000
     ```
 
+1. Start the bot
+
+    ```zsh
+    cd ../bot
+    npm run-script build
+    npm run-script start
+    ```
+
+1. Follow the instructions for [Adding your bot to servers](https://discordjs.guide/preparations/adding-your-bot-to-servers.html)
+
+1. Have fun!
 
 ### Dev Container
 
