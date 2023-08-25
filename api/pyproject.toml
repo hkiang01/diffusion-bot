@@ -22,7 +22,7 @@ uvicorn = { extras = ["standard"], version = "^0.23.2" }
 xformers = { version = "*", optional = true }
 
 # see https://pytorch.org/get-started/locally/
-# torch = { version = "^2.0.1" }
+# torch = { version = "^2.0.1" } # cpu
 torch = { version = "^2.0.1", source = "cu118" } # gpu
 
 

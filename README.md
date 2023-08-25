@@ -1,69 +1,110 @@
-# Text to Image Server
+# Diffusion Bot
 
-An API to change text into images using models like [Stable Diffusion XL 1.0]:
+A Discord bot for interacting with diffusion models like [Stable Diffusion XL 1.0]:
 
-![A crowd encircling a huge skyscraper in a large city](docs/images/end_stage_capitalism.png)
+![the statue of david](docs/images/statue_of_david.png)
+
 
 ## Getting started
 
-1. Install [Docker](https://docs.docker.com/get-docker/)
+### Local
+
+Prerequisites:
+- [git](https://git-scm.com/)
+- [Python](https://docs.python.org/3/)
+- [Poetry](https://python-poetry.org/docs/)
+- [Node](https://nodejs.org/en)
+
+
+1. Clone the repo
+
+    ```zsh
+    git clone git@github.com:hkiang01/diffusion-bot.git
+    ```
 
 1. Install dependencies
-
-    a. Developing inside a Container **Recommended** - Dependencies are installed automatically in the included [dev container](https://code.visualstudio.com/docs/devcontainers/containers), see `.devcontainer/devcontainer.json`
-
-    b. Developing locally - Install dependencies using [Poetry](https://python-poetry.org/)
+   
+   API dependencies
 
     ```zsh
     cd api
+    poetry config virtualenvs.in-project=true
     poetry install
     ```
-
-1. Start the server
-
-    ```zsh
-    ./.venv/bin/python api/main.py
-    ```
-
-1. Navigate to http://localhost:8000/docs#/default/predict_predict_post, click "Try it Out", modify the `"prompt"`, then click `"Execute"`
-
-
-
-    ![/predict endpoint in Swagger](docs/images/api_predict.png)
-
-
-
-### Speed
-
-1. If you want speedup by using a GPU:
-
-    a. Configure the GPU version of the `torch` dependency in `pyproject.toml`
+    
+    Note: If the GPU version of torch isn't compatible with your machine, change the dependency as follows:
 
     ```toml
-    torch = { version = "^2.0.1", source = "cu118" }
+    # pyproject.toml
+    torch = { version = "^2.0.1" } # cpu
+    # torch = { version = "^2.0.1", source = "cu118" } # gpu
     ```
 
-    and then install it
+    bot dependencies
 
     ```zsh
-    poetry lock
-    poetry install
+    cd ../bot
+    npm install
     ```
 
-    b. [Optional] To use the GPU in a dev container:
+1. Configure the Discord bot. Follow the instructions for [Creating your bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) in the [Discord developer portal](https://discord.com/developers/applications) and obtain:
 
-    i. [Install the NVIDIA Container Toolkit]. If you're running Windows, see [CUDA on Windows Subsystem for Linux (WSL)]
-    
-    ii. Set `"runArgs"` in `.devcontainer/devcontainer.json` as follows:
+   - the application's client id
+   - the bot's token
+
+    Then copy them in a file `.env`, created as a copy of `.env.sample`
+
+    ```zsh
+    cp .env.sample .env
+    ```
+
+    ```env
+    # bot/.env
+    API_URL=http://localhost:8000
+    DISCORD_BOT_TOKEN=put_token_here
+    DISCORD_OAUTH2_CLIENT_ID=put_client_id_here
+    ```
+
+1. Start the API
+
+    ```zsh
+    cd ../api
+    ./.venv/bin/uvicorn api.main:app --port 8000
+    ```
+
+    If you're using Windows, the path to `uvicorn` is slightly different
+
+    ```zsh
+    cd ../api
+    ./.venv/Scripts/uvicorn.exe api.main:app --port 8000
+    ```
+
+
+### Dev Container
+
+Prerequisites:
+- [Docker](https://www.docker.com/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+
+1. Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+
+1. Start the dev container by clicking "Open a Remote Window", then selecting "Reopen in Container"
+
+    ![](docs/images/reopen_in_container.png)
+
+    Note: If you don't have a GPU, comment out the following lines in `.devcontainer/devcontainer.json`:
 
     ```json
-    "runArgs": [
-        "--gpus",
-        "all"
-    ],
+    // "runArgs": [
+    //     "--gpus",
+    //     "all"
+    // ],
     ```
 
-## Adding more models
+
+
+### Adding more models
 
 The whole code base is extensible. If you implement another subclass of `Model`:
 - the API automatically adds it as another model able to be used in the dropdown of `/docs`
