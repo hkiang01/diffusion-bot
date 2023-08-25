@@ -21,6 +21,9 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
     const model = interaction.options.getString("model", true)
     const width = interaction.options.getInteger("width", false) || 1024
     const height = interaction.options.getInteger("height", false) || 1024
+    if (width % 8 != 0 || height % 8 != 0) {
+        return await interaction.editReply({ content: "Error: `height` and `width` have to be divisible by 8" })
+    }
     const predictTaskRequest: PredictTaskRequest = {
         model: model,
         prompt: prompt,
