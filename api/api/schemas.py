@@ -27,9 +27,7 @@ class PredictTaskRequest(pydantic.BaseModel):
     ) -> str:
         field_name = info.field_name
         if v % 8 != 0:
-            raise pydantic.ValidationError(
-                f"{field_name} must be divisible by 8"
-            )
+            raise ValueError(f"{field_name} must be divisible by 8")
         return v
 
 

@@ -1,15 +1,13 @@
-import { AttachmentBuilder, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
+import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
 import fs from 'fs';
 import API, { PredictTaskRequest, PredictTaskState } from '../services/api';
 import { COMMAND_NAME } from "../constants";
 
-export async function drawHandler(interaction: ChatInputCommandInteraction) {
+export async function drawHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
     const deferredReply = await interaction.deferReply({ fetchReply: true });
 
     // get the text channel to which to send results
-    const channelId = interaction.channelId;
-    const channel = await interaction.client.channels.fetch(channelId)
     if (!channel || !channel.isTextBased()) {
         await interaction.editReply({ content: `${COMMAND_NAME} only works in guilds` })
         await deferredReply.delete()
@@ -21,9 +19,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
     const model = interaction.options.getString("model", true)
     const width = interaction.options.getInteger("width", false) || 1024
     const height = interaction.options.getInteger("height", false) || 1024
-    if (width % 8 != 0 || height % 8 != 0) {
-        return await interaction.editReply({ content: "Error: `height` and `width` have to be divisible by 8" })
-    }
+
     const predictTaskRequest: PredictTaskRequest = {
         model: model,
         prompt: prompt,
