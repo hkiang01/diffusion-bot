@@ -14,6 +14,7 @@ ModelsEnum = enum.StrEnum(Model.__name__, model_subclasses)
 class PredictTaskRequest(pydantic.BaseModel):
     model: ModelsEnum
     prompt: str
+    image: pydantic.FilePath = None
     width: pydantic.PositiveInt = 1024
     height: pydantic.PositiveInt = 1024
     num_inference_steps: pydantic.PositiveInt = 20

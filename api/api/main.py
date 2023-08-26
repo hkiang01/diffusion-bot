@@ -1,16 +1,18 @@
 import http
 import os
 import queue
+import typing
 import uuid
 
 import fastapi
 import uvicorn
 
+import api.constants
 import api.schemas
 import api.tasks
 
 app = fastapi.FastAPI(
-    title="Text to Image Server",
+    title="diffusion-bot",
 )
 
 
@@ -22,6 +24,14 @@ async def ping():
 @app.post("/predict", status_code=http.HTTPStatus.ACCEPTED)
 async def predict(
     predict_task_request: api.schemas.PredictTaskRequest,
+    image: typing.Annotated[
+        fastapi.UploadFile,
+        fastapi.File(
+            description="Image to blend into a diffusion model",
+            media_type="image",
+        ),
+    ]
+    | None = None,
 ) -> uuid.UUID:
     predict_task = api.schemas.PredictTask(
         model=predict_task_request.model,
@@ -30,6 +40,13 @@ async def predict(
         height=predict_task_request.height,
         num_inference_steps=predict_task_request.num_inference_steps,
     )
+    if image:
+        image_path = f"{api.constants.OUTPUT_DIR}/{predict_task.task_id}"
+        with open(image_path, "xb") as f:
+            image_bytes = await image.read()
+            f.write(image_bytes)
+        predict_task.image = image_path
+
     try:
         task_id = api.tasks.PredictTaskQueue.submit(predict_task=predict_task)
     except queue.Full as exc:
@@ -86,4 +103,4 @@ async def delete_result(task_id: uuid.UUID) -> str:
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, port=8000)
