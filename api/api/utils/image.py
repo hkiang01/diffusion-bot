@@ -3,7 +3,7 @@ import uuid
 
 from PIL.Image import Image
 
-from api.constants import OUTPUT_DIR
+from api.constants import OUTPUTS_DIR
 
 
 class ImageUtilsMixin:
@@ -16,5 +16,5 @@ class ImageUtilsMixin:
 
     @staticmethod
     def image_path(image_id: uuid.UUID) -> os.PathLike:
-        image_path = os.path.join(OUTPUT_DIR, f"{str(image_id)}.png")
+        image_path = os.path.join(OUTPUTS_DIR, f"{str(image_id)}.png")
         return image_path

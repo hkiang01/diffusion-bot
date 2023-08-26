@@ -63,6 +63,8 @@
         // models cache
         // see https://huggingface.co/docs/diffusers/v0.19.3/en/api/models/overview#diffusers.ModelMixin.from_pretrained
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache/huggingface,target=/home/vscode/.cache/huggingface,type=bind,consistency=cached",
+        // api inputs
+        "source=${localWorkspaceFolder}/api/inputs,target=/workspaces/text-to-image-server/api/inputs,type=bind,consistency=cached",
         // api outputs
         "source=${localWorkspaceFolder}/api/outputs,target=/workspaces/text-to-image-server/api/outputs,type=bind,consistency=cached",
         // node modules

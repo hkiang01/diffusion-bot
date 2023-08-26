@@ -41,7 +41,7 @@ async def predict(
         num_inference_steps=predict_task_request.num_inference_steps,
     )
     if image:
-        image_path = f"{api.constants.OUTPUT_DIR}/{predict_task.task_id}"
+        image_path = f"{api.constants.INPUTS_DIR}/{predict_task.task_id}"
         with open(image_path, "xb") as f:
             image_bytes = await image.read()
             f.write(image_bytes)

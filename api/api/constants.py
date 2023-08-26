@@ -1,3 +1,5 @@
 import os
 
-OUTPUT_DIR = os.getenv("OUTPUT_DIR", "outputs")
+INPUTS_DIR = os.getenv("INPUTS_DIR", "inputs")
+
+OUTPUTS_DIR = os.getenv("OUTPUTS_DIR", "outputs")
