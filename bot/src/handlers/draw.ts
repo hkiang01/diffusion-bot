@@ -37,7 +37,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction) {
             { name: "Author", value: author },
             { name: "Model", value: model },
             { name: "Position in queue", value: "N/A" },
-            { name: "Percent complete", value: "0" },
+            { name: "Percent complete", value: "0%" },
             { name: "Time elapsed", value: `0 seconds` },
 
         ])
