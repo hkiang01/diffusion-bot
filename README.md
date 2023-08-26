@@ -69,14 +69,7 @@ Prerequisites:
 
     ```zsh
     cd ../api
-    ./.venv/bin/uvicorn api.main:app --port 8000
-    ```
-
-    If you're using Windows, the path to `uvicorn` is slightly different
-
-    ```zsh
-    cd ../api
-    ./.venv/Scripts/uvicorn.exe api.main:app --port 8000
+    poetry run uvicorn api.main:ap api.main:app --port 8000
     ```
 
 1. Start the bot
