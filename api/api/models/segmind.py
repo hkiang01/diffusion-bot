@@ -35,7 +35,7 @@ class SegmindSmallSD(Model):
         #####################
         # some speedup code #
         #####################
-        self.speedup(pipe=pipe)
+        self._speedup(pipe=pipe)
         self.pipe = pipe
 
     def predict(

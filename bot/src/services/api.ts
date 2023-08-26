@@ -34,7 +34,17 @@ export type PredictTaskRequest = {
 }
 
 async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof uuidv4> {
-    const resp = await http.post<typeof uuidv4>('/predict', predictTaskRequest)
+    let resp
+    try {
+        resp = await http.post<typeof uuidv4>('/predict', predictTaskRequest)
+
+    } catch (error) {
+        if (error instanceof AxiosError && error.response?.status == 422) {
+            throw Error(JSON.stringify(error.response.data))
+        } else {
+            throw error
+        }
+    }
     const data = resp.data;
     return data
 }

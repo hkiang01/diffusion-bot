@@ -15,9 +15,21 @@ class PredictTaskRequest(pydantic.BaseModel):
     model: ModelsEnum
     prompt: str
     image: pydantic.FilePath = None
-    width: pydantic.PositiveInt = 1024
-    height: pydantic.PositiveInt = 1024
+
+    # can change if your GPU has the allowed memory
+    width: pydantic.conint(ge=8, le=2560)
+    height: pydantic.conint(ge=8, le=1440)
     num_inference_steps: pydantic.PositiveInt = 20
+
+    @pydantic.field_validator("width", "height")
+    @classmethod
+    def dimensions_divisible_by_8(
+        cls, v: int, info: pydantic.FieldValidationInfo
+    ) -> str:
+        field_name = info.field_name
+        if v % 8 != 0:
+            raise ValueError(f"{field_name} must be divisible by 8")
+        return v
 
 
 class PredictTask(PredictTaskRequest):

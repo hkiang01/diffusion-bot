@@ -30,16 +30,16 @@ export const buildDrawSubcommand = async () => {
         .setName("width")
         .setDescription("Width of image")
         .setRequired(false)
-        .setMinValue(1)
-        .setMaxValue(2560)
+        .setMinValue(8)
+        .setMaxValue(2560) // can change if your GPU has the allowed memory
     )
     .addIntegerOption(option =>
       option
         .setName("height")
         .setDescription("Height of image")
         .setRequired(false)
-        .setMinValue(1)
-        .setMaxValue(1440)
+        .setMinValue(8)
+        .setMaxValue(1440) // can change if your GPU has the allowed memory
     )
     .addIntegerOption(option =>
       option
