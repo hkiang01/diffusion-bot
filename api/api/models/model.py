@@ -28,7 +28,7 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     ) -> PIL.Image.Image:
         raise NotImplementedError()
 
-    def speedup(self, pipe: diffusers.DiffusionPipeline):
+    def _speedup(self, pipe: diffusers.DiffusionPipeline):
         # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#speed
         if torch.cuda.is_available():
             logger.debug("using gpu")
