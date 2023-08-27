@@ -32,6 +32,7 @@ class StableDiffusionXL(api.models.model.Model):
                 use_safetensors=True,
                 variant="fp16",
             )
+
         elif task == api.models.model.Task.IMAGE_TO_IMAGE:
             # see https://huggingface.co/docs/diffusers/v0.20.0/en/api/pipelines/stable_diffusion/stable_diffusion_xl#imagetoimage
             pipe = diffusers.StableDiffusionXLImg2ImgPipeline.from_pretrained(
