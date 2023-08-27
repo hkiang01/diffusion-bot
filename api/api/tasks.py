@@ -93,6 +93,8 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 num_inference_steps=task.num_inference_steps,
                 image_url=str(task.image_url),
                 callback=_callback,
+                strength=task.strength,
+                guidance_scale=task.guidance_scale,
             )
         else:
             raise RuntimeError(f"Unexpected Task type {type(task)}")

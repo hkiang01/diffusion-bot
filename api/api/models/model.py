@@ -49,6 +49,8 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
         prompt: str,
         num_inference_steps: int,
         image_url: str,
+        strength: float,
+        guidance_scale: float,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
         ] = None,
@@ -64,6 +66,8 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
             num_inference_steps=num_inference_steps,
             callback=callback,
             image=image,
+            strength=strength,
+            guidance_scale=guidance_scale,
         ).images[0]
         return result
 

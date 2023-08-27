@@ -41,5 +41,18 @@ export const buildImageToImageSubcommand = async () => {
         .setMinValue(1)
         .setMaxValue(20)
     )
-    ;
+    .addNumberOption(option =>
+      option
+        .setName("strength")
+        .setDescription("Transform image with strength 0-1. More strength adds more changes. At strength 1, maximal change")
+        .setRequired(false)
+        .setMinValue(0)
+        .setMaxValue(1)
+    )
+    .addNumberOption(option =>
+      option
+        .setName("guidance_scale")
+        .setDescription("Higher value = prompt-aligned images, lower quality. Default: 7.5.")
+        .setRequired(false)
+    );
 }

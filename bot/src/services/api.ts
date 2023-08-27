@@ -39,6 +39,8 @@ export interface TextToImageRequest extends BaseRequest {
 
 export interface ImageToImageRequest extends BaseRequest {
     image_url: string
+    strength?: number
+    guidance_scale?: number
 }
 
 async function textToImage(textToImageRequest: TextToImageRequest): Promise<typeof uuidv4> {

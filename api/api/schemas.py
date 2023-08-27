@@ -36,6 +36,8 @@ class TextToImageRequest(BaseRequest):
 
 class ImageToImageRequest(BaseRequest):
     image_url: pydantic.HttpUrl
+    strength: pydantic.confloat(ge=0, le=1) = 0.8
+    guidance_scale: float = 7.5
 
 
 class TextToImageTask(TextToImageRequest):

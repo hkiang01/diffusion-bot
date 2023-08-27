@@ -56,6 +56,8 @@ async def image_to_image(
         prompt=image_to_image_request.prompt,
         num_inference_steps=image_to_image_request.num_inference_steps,
         image_url=image_to_image_request.image_url,
+        strength=image_to_image_request.strength,
+        guidance_scale=image_to_image_request.guidance_scale,
     )
 
     try:

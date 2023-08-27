@@ -18,12 +18,17 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
     const prompt = interaction.options.getString("prompt", true);
     const model = interaction.options.getString("model", true)
     const imageURL = interaction.options.getString("image_url", true)
+    const strength = interaction.options.getNumber("strength", false) || undefined
+    const guidanceScale = interaction.options.getNumber("guidance_scale", false) || undefined
+
 
     const imageToImageRequest: ImageToImageRequest = {
         model: model,
         prompt: prompt,
         image_url: imageURL,
         num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
+        strength: strength,
+        guidance_scale: guidanceScale
     }
     const author = interaction.user.displayName
     const initialEmbed = new EmbedBuilder()
