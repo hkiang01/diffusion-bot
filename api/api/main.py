@@ -49,25 +49,13 @@ async def text_to_image(
 
 @app.post("/image-to-image", status_code=http.HTTPStatus.ACCEPTED)
 async def image_to_image(
-    image: typing.Annotated[
-        fastapi.UploadFile,
-        fastapi.File(
-            description="The initial image to conditino the generation of a new image",
-            media_type="image",
-        ),
-    ],
-    image_to_image_request: api.schemas.ImageToImageRequest = fastapi.Depends(),
+    image_to_image_request: api.schemas.ImageToImageRequest,
 ) -> uuid.UUID:
     task = api.schemas.ImageToImageTask(
         model=image_to_image_request.model,
         prompt=image_to_image_request.prompt,
         num_inference_steps=image_to_image_request.num_inference_steps,
     )
-    image_path = f"{api.constants.INPUTS_DIR}/{task.task_id}"
-    with open(image_path, "xb") as f:
-        image_bytes = await image.read()
-        f.write(image_bytes)
-    task.image_path = image_path
 
     try:
         task_id = api.tasks.PredictTaskQueue.submit(task=task)

@@ -21,6 +21,8 @@ export const OUTPUTS_DIR = 'outputs'
 
 export const COMMAND_NAME = 'diffusion-bot'
 export enum Commands {
-    Draw = 'draw',
+    TextToImage = 'text-to-image',
+    ImageToimage = 'image-to-image',
+
 }
 

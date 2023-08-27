@@ -1,15 +1,15 @@
 import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
 import fs from 'fs';
-import API, { PredictTaskRequest, PredictTaskState } from '../services/api';
-import { COMMAND_NAME } from "../constants";
+import API, { ImageToImageRequest, TaskState } from '../services/api';
+import { Commands } from "../constants";
 
-export async function drawHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
+export async function imageToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
     const deferredReply = await interaction.deferReply({ fetchReply: true });
 
     // get the text channel to which to send results
     if (!channel || !channel.isTextBased()) {
-        await interaction.editReply({ content: `${COMMAND_NAME} only works in guilds` })
+        await interaction.editReply({ content: `${Commands.ImageToimage} only works in guilds` })
         await deferredReply.delete()
         return
     }
@@ -17,14 +17,12 @@ export async function drawHandler(interaction: ChatInputCommandInteraction, chan
     // send initial state of request
     const prompt = interaction.options.getString("prompt", true);
     const model = interaction.options.getString("model", true)
-    const width = interaction.options.getInteger("width", false) || 1024
-    const height = interaction.options.getInteger("height", false) || 1024
+    const imageURL = interaction.options.getString("image_url", true)
 
-    const predictTaskRequest: PredictTaskRequest = {
+    const imageToImageRequest: ImageToImageRequest = {
         model: model,
         prompt: prompt,
-        width: width,
-        height: height,
+        imageURL: imageURL,
         num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
     }
     const author = interaction.user.displayName
@@ -42,7 +40,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction, chan
     await deferredReply.delete()
 
     // update request state every polling interval
-    const callback = async (state: PredictTaskState) => {
+    const callback = async (state: TaskState) => {
         const timeElapsed = (new Date().getTime() - start) / 1000;
         const embed = new EmbedBuilder()
             .setFields([
@@ -58,7 +56,7 @@ export async function drawHandler(interaction: ChatInputCommandInteraction, chan
 
     // actually start the polling
     const start = new Date().getTime()
-    const submissionId = await API.predict(predictTaskRequest)
+    const submissionId = await API.imageToImage(imageToImageRequest)
     const path = await API.result(submissionId, callback)
 
     // send the result to the channel

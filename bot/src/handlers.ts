@@ -1,6 +1,7 @@
 import { Interaction } from 'discord.js';
 import { COMMAND_NAME, Commands } from './constants';
-import { drawHandler } from './handlers/draw';
+import { textToImageHandler } from './handlers/textToImage';
+import { imageToImageHandler } from './handlers/imageToImage';
 
 export async function interactionHandler(interaction: Interaction) {
     // ensure that:
@@ -23,8 +24,11 @@ export async function interactionHandler(interaction: Interaction) {
 
     try {
         switch (interaction.options.getSubcommand()) {
-            case Commands.Draw:
-                await drawHandler(interaction, channel);
+            case Commands.TextToImage:
+                await textToImageHandler(interaction, channel);
+                break;
+            case Commands.ImageToimage:
+                await imageToImageHandler(interaction, channel);
                 break;
             default:
                 await interaction.followUp({ ephemeral: true, content: 'Unrecognized command' });

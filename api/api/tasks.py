@@ -91,7 +91,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
             image = model_instance.predict_image_to_image(
                 prompt=task.prompt,
                 num_inference_steps=task.num_inference_steps,
-                image_path=task.image_path,
+                image_url=task.image_url,
                 callback=_callback,
             )
         else:

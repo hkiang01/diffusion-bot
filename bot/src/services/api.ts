@@ -25,18 +25,42 @@ async function getModels(): Promise<string[]> {
     }
 }
 
-export type PredictTaskRequest = {
+export type BaseRequest = {
     model: string,
     prompt: string,
-    width: number,
-    height: number,
     num_inference_steps: number
+
 }
 
-async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof uuidv4> {
+export interface TextToImageRequest extends BaseRequest {
+    width: number,
+    height: number,
+}
+
+export interface ImageToImageRequest extends BaseRequest {
+    imageURL: string
+}
+
+async function textToImage(textToImageRequest: TextToImageRequest): Promise<typeof uuidv4> {
     let resp
     try {
-        resp = await http.post<typeof uuidv4>('/predict', predictTaskRequest)
+        resp = await http.post<typeof uuidv4>('/text-to-image', textToImageRequest)
+
+    } catch (error) {
+        if (error instanceof AxiosError && error.response?.status == 422) {
+            throw Error(JSON.stringify(error.response.data))
+        } else {
+            throw error
+        }
+    }
+    const data = resp.data;
+    return data
+}
+
+async function imageToImage(imageToImageRequest: ImageToImageRequest): Promise<typeof uuidv4> {
+    let resp
+    try {
+        resp = await http.post<typeof uuidv4>('/image-to-image', imageToImageRequest)
 
     } catch (error) {
         if (error instanceof AxiosError && error.response?.status == 422) {
@@ -50,26 +74,26 @@ async function predict(predictTaskRequest: PredictTaskRequest): Promise<typeof u
 }
 
 
-interface PredictTask extends PredictTaskRequest {
+interface TextToImageTask extends TextToImageRequest {
     task_id: string,
 }
 
-export enum PredictTaskStage {
+export enum TaskStage {
     PENDING = "PENDING",
     PROCESSING = "PROCESSING",
     COMPLETE = "COMPLETE",
     NOT_FOUND = "NOT FOUND"
 }
 
-export class PredictTaskState {
-    predict_task!: PredictTask
-    stage!: PredictTaskStage
+export class TaskState {
+    task!: TextToImageTask
+    stage!: TaskStage
     percent_complete!: number
     position!: number
 }
 
 
-async function result(submissionId: typeof uuidv4, callback?: (state: PredictTaskState) => unknown): Promise<string> {
+async function result(submissionId: typeof uuidv4, callback?: (state: TaskState) => unknown): Promise<string> {
     const config: AxiosRequestConfig = {
         maxRedirects: 0,
         params: {
@@ -82,7 +106,7 @@ async function result(submissionId: typeof uuidv4, callback?: (state: PredictTas
     while (true) {
         await wait.setTimeout(4000);
         try {
-            const state = await http.get<PredictTaskState>('/status', config)
+            const state = await http.get<TaskState>('/status', config)
             if (callback) callback(state.data)
         } catch (error) {
             if (error instanceof AxiosError && error.response?.status == 303) {
@@ -115,8 +139,9 @@ async function deleteResult(submissionId: typeof uuidv4): Promise<void> {
 const API = {
     deleteResult,
     getModels,
-    predict,
-    result,
+    imageToImage,
+    textToImage,
+    result
 }
 
 export default API

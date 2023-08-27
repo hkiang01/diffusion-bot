@@ -1,7 +1,6 @@
 import abc
 import enum
 import logging
-import pathlib
 import typing
 
 import diffusers
@@ -49,12 +48,12 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
         self,
         prompt: str,
         num_inference_steps: int,
-        image_path: pathlib.Path,
+        image_url: str,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
         ] = None,
     ) -> PIL.Image.Image:
-        image = diffusers.utils.load_image(image=image_path)
+        image = diffusers.utils.load_image(image=image_url)
 
         ##########################
         # actually use the model #

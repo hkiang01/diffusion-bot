@@ -1,13 +1,18 @@
 import { SlashCommandBuilder } from "discord.js";
-import { buildDrawSubcommand } from "./commands/draw";
+import { buildTextToImageSubcommand } from "./commands/textToImage";
+import { buildImageToImageSubcommand } from "./commands/imageToImage";
+
 import { COMMAND_NAME } from './constants';
 
 export const buildCommands = async () => {
-    const drawSubcommand = await buildDrawSubcommand();
+    const textToImageSubcommand = await buildTextToImageSubcommand();
+    const imageToImageSubcommand = await buildImageToImageSubcommand();
+
     return [new SlashCommandBuilder()
         .setName(COMMAND_NAME)
         .setDescription("A bot to explore your imagination")
-        .addSubcommand(drawSubcommand)
+        .addSubcommand(textToImageSubcommand)
+        .addSubcommand(imageToImageSubcommand)
     ].map(command => command.toJSON())
 }
 
