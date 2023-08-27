@@ -9,10 +9,11 @@ import torch
 
 from api.models.model import Model
 from api.schemas import (
+    ImageToImageTask,
     ModelsEnum,
-    PredictTask,
-    PredictTaskStage,
-    PredictTaskState,
+    TaskStage,
+    TaskState,
+    TextToImageTask,
 )
 from api.utils.image import ImageUtilsMixin
 
@@ -22,30 +23,28 @@ logger.setLevel(os.getenv("LOG_LEVEL", logging.WARNING))
 
 class _PredictTaskQueue(ImageUtilsMixin):
     def __init__(self, max_size: int = 10):
-        self._queue: queue.Queue[PredictTask] = queue.Queue(maxsize=max_size)
+        self._queue: queue.Queue[
+            ImageToImageTask | TextToImageTask
+        ] = queue.Queue(maxsize=max_size)
 
         self._states_lock = threading.Lock()
-        self._states: dict[uuid.UUID, PredictTaskState] = {}
+        self._states: dict[uuid.UUID, TaskState] = {}
         self._current_task: uuid.UUID
 
         threading.Thread(target=self._worker).start()
 
-    def submit(self, predict_task: PredictTask) -> uuid.UUID:
-        logger.info(f"Submitting {predict_task.task_id}")
-        self._queue.put_nowait(predict_task)
+    def submit(self, task: ImageToImageTask | TextToImageTask) -> uuid.UUID:
+        logger.info(f"Submitting {task.task_id}")
+        self._queue.put_nowait(task)
         try:
-            task_info = PredictTaskState(
-                predict_task=predict_task, stage=PredictTaskStage.PENDING
-            )
+            task_info = TaskState(task=task, stage=TaskStage.PENDING)
             with self._states_lock:
-                self._states[predict_task.task_id] = task_info
+                self._states[task.task_id] = task_info
         except queue.Full:
             raise queue.Full("At max capacity. Try again later")
-        return predict_task.task_id
+        return task.task_id
 
-    def status(
-        self, task_id: uuid.UUID
-    ) -> PredictTaskState | os.PathLike[str]:
+    def status(self, task_id: uuid.UUID) -> TaskState | os.PathLike[str]:
         try:
             with self._states_lock:
                 state = self._states[task_id]
@@ -58,15 +57,15 @@ class _PredictTaskQueue(ImageUtilsMixin):
             else:
                 raise exc
 
-        return PredictTaskState(
+        return TaskState(
             position=position,
-            predict_task=state.predict_task,
+            task=state.task,
             stage=state.stage,
             percent_complete=state.percent_complete,
         )
 
-    def _predict(self, predict_task: PredictTask):
-        model = predict_task.model
+    def _predict(self, task: ImageToImageTask | TextToImageTask):
+        model = task.model
         model_instance: Model = _get_model_instance(requested_model=model)
 
         state = self._states[self._current_task]
@@ -74,44 +73,51 @@ class _PredictTaskQueue(ImageUtilsMixin):
         def _callback(step: int, timestep: int, latents: torch.FloatTensor):
             with self._states_lock:
                 state.percent_complete = (
-                    step / state.predict_task.num_inference_steps * 100
+                    step / state.task.num_inference_steps * 100
                 )
                 self._states[self._current_task] = state
 
-        image = model_instance.predict(
-            prompt=predict_task.prompt,
-            image_path=predict_task.image_path,
-            width=predict_task.width,
-            height=predict_task.height,
-            num_inference_steps=predict_task.num_inference_steps,
-            callback=_callback,
-        )
-        self.saveImage(image=image, image_id=predict_task.task_id)
+        kwargs = {
+            "prompt": task.prompt,
+            "num_inference_steps": task.num_inference_steps,
+            "callback": _callback,
+        }
+
+        if isinstance(task, TextToImageTask):
+            kwargs["width"] = task.width
+            kwargs["height"] = task.height
+        elif isinstance(task, ImageToImageTask):
+            kwargs["image_path"] = task.image_path
+        else:
+            raise RuntimeError(f"Unexpected Task type {type(task)}")
+
+        image = model_instance.predict(**kwargs)
+        self.saveImage(image=image, image_id=task.task_id)
 
     def _worker(self):
         while True:
-            predict_task = self._queue.get()
+            task = self._queue.get()
 
-            logger.info(f"Starting {predict_task}")
+            logger.info(f"Starting {task}")
             with self._states_lock:
-                state = self._states[predict_task.task_id]
-                state.stage = PredictTaskStage.PROCESSING
+                state = self._states[task.task_id]
+                state.stage = TaskStage.PROCESSING
                 state.position = 0
-            self._current_task = state.predict_task.task_id
+            self._current_task = state.task.task_id
 
             try:
-                self._predict(predict_task=predict_task)
+                self._predict(task=task)
             except Exception as exc:
                 logger.exception(
-                    msg=f"Error while processing PredictTask {predict_task}",
+                    msg=f"Error while processing PredictTask {task}",
                     exc_info=exc,
                 )
 
-            logger.info(f"Completed {predict_task.task_id}")
+            logger.info(f"Completed {task.task_id}")
             self._queue.task_done()
 
             with self._states_lock:
-                del self._states[predict_task.task_id]
+                del self._states[task.task_id]
 
 
 def _get_model_instance(requested_model: ModelsEnum) -> Model:

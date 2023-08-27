@@ -3,22 +3,26 @@ import uuid
 
 import pydantic
 
-# necessary to dynamically populate names of subclasses of Model
+# `import *` necessary to dynamically populate names of subclasses of Model
 from api.models import *  # noqa: F401,F403
 from api.models.model import Model
 
 model_subclasses = [cls.__name__ for cls in Model.__subclasses__()]
 ModelsEnum = enum.StrEnum(Model.__name__, model_subclasses)
+default_model = list(vars(ModelsEnum).items())[0]
 
 
-class PredictTaskRequest(pydantic.BaseModel):
-    model: ModelsEnum
+class ImageToImageRequest(pydantic.BaseModel):
+    model: ModelsEnum = default_model
     prompt: str
 
-    # can change if your GPU has the allowed memory
-    width: pydantic.conint(ge=8, le=2560) = 512
-    height: pydantic.conint(ge=8, le=1440) = 512
     num_inference_steps: pydantic.PositiveInt = 20
+
+
+class TextToImageRequest(ImageToImageRequest):
+    # can change defaults if your GPU has the allowed memory
+    width: pydantic.conint(ge=8, le=2560) = 1024
+    height: pydantic.conint(ge=8, le=1440) = 1024
 
     @pydantic.field_validator("width", "height")
     @classmethod
@@ -31,20 +35,24 @@ class PredictTaskRequest(pydantic.BaseModel):
         return v
 
 
-class PredictTask(PredictTaskRequest):
+class TextToImageTask(TextToImageRequest):
+    task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
+
+
+class ImageToImageTask(ImageToImageRequest):
     task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
     image_path: pydantic.FilePath = None
 
 
-class PredictTaskStage(enum.StrEnum):
+class TaskStage(enum.StrEnum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     COMPLETE = "COMPLETE"
     NOT_FOUND = "NOT FOUND"
 
 
-class PredictTaskState(pydantic.BaseModel):
-    predict_task: PredictTask
-    stage: PredictTaskStage = PredictTaskStage.NOT_FOUND
+class TaskState(pydantic.BaseModel):
+    task: TextToImageTask | ImageToImageTask
+    stage: TaskStage = TaskStage.NOT_FOUND
     percent_complete: pydantic.confloat(ge=0, le=100) = 0
     position: int = -1

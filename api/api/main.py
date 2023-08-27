@@ -21,33 +21,56 @@ async def ping():
     return "pong"
 
 
-@app.post("/predict", status_code=http.HTTPStatus.ACCEPTED)
-async def predict(
-    predict_task_request: api.schemas.PredictTaskRequest = fastapi.Depends(),
+@app.post("/text-to-image", status_code=http.HTTPStatus.ACCEPTED)
+async def text_to_image(
+    text_to_image_request: api.schemas.TextToImageRequest,
+) -> uuid.UUID:
+    task = api.schemas.TextToImageTask(
+        model=text_to_image_request.model,
+        prompt=text_to_image_request.prompt,
+        width=text_to_image_request.width,
+        height=text_to_image_request.height,
+        num_inference_steps=text_to_image_request.num_inference_steps,
+    )
+
+    try:
+        task_id = api.tasks.PredictTaskQueue.submit(task=task)
+    except queue.Full as exc:
+        raise fastapi.exceptions.HTTPException(
+            detail=str(exc),
+            status_code=http.HTTPStatus.TOO_MANY_REQUESTS,
+            headers={"Retry-After": "60"},
+        )
+    return fastapi.responses.PlainTextResponse(
+        content=str(task_id),
+        status_code=http.HTTPStatus.ACCEPTED,
+    )
+
+
+@app.post("/image-to-image", status_code=http.HTTPStatus.ACCEPTED)
+async def image_to_image(
     image: typing.Annotated[
         fastapi.UploadFile,
         fastapi.File(
-            description="Image to blend into a diffusion model",
+            description="The initial image to conditino the generation of a new image",
             media_type="image",
         ),
-    ] = None,
+    ],
+    image_to_image_request: api.schemas.ImageToImageRequest = fastapi.Depends(),
 ) -> uuid.UUID:
-    predict_task = api.schemas.PredictTask(
-        model=predict_task_request.model,
-        prompt=predict_task_request.prompt,
-        width=predict_task_request.width,
-        height=predict_task_request.height,
-        num_inference_steps=predict_task_request.num_inference_steps,
+    task = api.schemas.ImageToImageTask(
+        model=image_to_image_request.model,
+        prompt=image_to_image_request.prompt,
+        num_inference_steps=image_to_image_request.num_inference_steps,
     )
-    if image:
-        image_path = f"{api.constants.INPUTS_DIR}/{predict_task.task_id}"
-        with open(image_path, "xb") as f:
-            image_bytes = await image.read()
-            f.write(image_bytes)
-        predict_task.image_path = image_path
+    image_path = f"{api.constants.INPUTS_DIR}/{task.task_id}"
+    with open(image_path, "xb") as f:
+        image_bytes = await image.read()
+        f.write(image_bytes)
+    task.image_path = image_path
 
     try:
-        task_id = api.tasks.PredictTaskQueue.submit(predict_task=predict_task)
+        task_id = api.tasks.PredictTaskQueue.submit(task=task)
     except queue.Full as exc:
         raise fastapi.exceptions.HTTPException(
             detail=str(exc),
@@ -64,13 +87,13 @@ async def predict(
 @app.get("/status")
 async def status(
     task_id: uuid.UUID,
-) -> api.schemas.PredictTaskState:
+) -> api.schemas.TaskState:
     try:
         task_info = api.tasks.PredictTaskQueue.status(task_id=task_id)
     except KeyError:
         raise fastapi.exceptions.HTTPException(
             status_code=http.HTTPStatus.NOT_FOUND,
-            detail=api.schemas.PredictTaskStage.NOT_FOUND,
+            detail=api.schemas.TaskStage.NOT_FOUND,
         )
 
     if isinstance(task_info, str):

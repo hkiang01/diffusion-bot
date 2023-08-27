@@ -25,9 +25,9 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     def predict(
         self,
         prompt: str,
-        width: int,
-        height: int,
         num_inference_steps: int,
+        width: int | None = None,
+        height: int | None = None,
         image_path: pathlib.Path | None = None,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
