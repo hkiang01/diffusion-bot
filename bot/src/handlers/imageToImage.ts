@@ -22,7 +22,7 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
     const imageToImageRequest: ImageToImageRequest = {
         model: model,
         prompt: prompt,
-        imageURL: imageURL,
+        image_url: imageURL,
         num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
     }
     const author = interaction.user.displayName
