@@ -22,38 +22,50 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     def __init__(self):
         self.pipe: diffusers.DiffusionPipeline
 
-    def predict(
+    def predict_text_to_image(
         self,
         prompt: str,
         num_inference_steps: int,
-        width: int | None = None,
-        height: int | None = None,
-        image_path: pathlib.Path | None = None,
+        width: int,
+        height: int,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
         ] = None,
     ) -> PIL.Image.Image:
-        kwargs: dict = {
-            "prompt": prompt,
-            "num_inference_steps": num_inference_steps,
-            "callback": callback,
-        }
+        ##########################
+        # actually use the model #
+        ##########################
+        self._load(task=Task.TEXT_TO_IMAGE)
+        result: PIL.Image.Image = self.pipe(
+            prompt=prompt,
+            num_inference_steps=num_inference_steps,
+            callback=callback,
+            width=width,
+            height=height,
+        ).images[0]
+        return result
 
-        image: PIL.Image.Image = None
-        if image_path:
-            image = diffusers.utils.load_image(image=image_path)
-            kwargs["image"] = image
-            self._load(task=Task.IMAGE_TO_IMAGE)
-
-        else:
-            kwargs["width"] = width
-            kwargs["height"] = height
-            self._load(task=Task.TEXT_TO_IMAGE)
+    def predict_image_to_image(
+        self,
+        prompt: str,
+        num_inference_steps: int,
+        image_path: pathlib.Path,
+        callback: typing.Optional[
+            typing.Callable[[int, int, torch.FloatTensor], None]
+        ] = None,
+    ) -> PIL.Image.Image:
+        image = diffusers.utils.load_image(image=image_path)
 
         ##########################
         # actually use the model #
         ##########################
-        result: PIL.Image.Image = self.pipe(**kwargs).images[0]
+        self._load(task=Task.IMAGE_TO_IMAGE)
+        result: PIL.Image.Image = self.pipe(
+            prompt=prompt,
+            num_inference_steps=num_inference_steps,
+            callback=callback,
+            image=image,
+        ).images[0]
         return result
 
     def _load(self, task: Task):

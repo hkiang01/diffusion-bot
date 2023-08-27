@@ -8,13 +8,7 @@ import fastapi.logger
 import torch
 
 from api.models.model import Model
-from api.schemas import (
-    ImageToImageTask,
-    ModelsEnum,
-    TaskStage,
-    TaskState,
-    TextToImageTask,
-)
+import api.schemas
 from api.utils.image import ImageUtilsMixin
 
 logger = fastapi.logger.logger
@@ -24,27 +18,33 @@ logger.setLevel(os.getenv("LOG_LEVEL", logging.WARNING))
 class _PredictTaskQueue(ImageUtilsMixin):
     def __init__(self, max_size: int = 10):
         self._queue: queue.Queue[
-            ImageToImageTask | TextToImageTask
+            api.schemas.ImageToImageTask | api.schemas.TextToImageTask
         ] = queue.Queue(maxsize=max_size)
 
         self._states_lock = threading.Lock()
-        self._states: dict[uuid.UUID, TaskState] = {}
+        self._states: dict[uuid.UUID, api.schemas.TaskState] = {}
         self._current_task: uuid.UUID
 
         threading.Thread(target=self._worker).start()
 
-    def submit(self, task: ImageToImageTask | TextToImageTask) -> uuid.UUID:
+    def submit(
+        self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask
+    ) -> uuid.UUID:
         logger.info(f"Submitting {task.task_id}")
         self._queue.put_nowait(task)
         try:
-            task_info = TaskState(task=task, stage=TaskStage.PENDING)
+            task_info = api.schemas.TaskState(
+                task=task, stage=api.schemas.TaskStage.PENDING
+            )
             with self._states_lock:
                 self._states[task.task_id] = task_info
         except queue.Full:
             raise queue.Full("At max capacity. Try again later")
         return task.task_id
 
-    def status(self, task_id: uuid.UUID) -> TaskState | os.PathLike[str]:
+    def status(
+        self, task_id: uuid.UUID
+    ) -> api.schemas.TaskState | os.PathLike[str]:
         try:
             with self._states_lock:
                 state = self._states[task_id]
@@ -57,14 +57,16 @@ class _PredictTaskQueue(ImageUtilsMixin):
             else:
                 raise exc
 
-        return TaskState(
+        return api.schemas.TaskState(
             position=position,
             task=state.task,
             stage=state.stage,
             percent_complete=state.percent_complete,
         )
 
-    def _predict(self, task: ImageToImageTask | TextToImageTask):
+    def _predict(
+        self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask
+    ):
         model = task.model
         model_instance: Model = _get_model_instance(requested_model=model)
 
@@ -77,21 +79,24 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 )
                 self._states[self._current_task] = state
 
-        kwargs = {
-            "prompt": task.prompt,
-            "num_inference_steps": task.num_inference_steps,
-            "callback": _callback,
-        }
-
-        if isinstance(task, TextToImageTask):
-            kwargs["width"] = task.width
-            kwargs["height"] = task.height
-        elif isinstance(task, ImageToImageTask):
-            kwargs["image_path"] = task.image_path
+        if isinstance(task, api.schemas.TextToImageTask):
+            image = model_instance.predict_text_to_image(
+                prompt=task.prompt,
+                num_inference_steps=task.num_inference_steps,
+                width=task.width,
+                height=task.height,
+                callback=_callback,
+            )
+        elif isinstance(task, api.schemas.ImageToImageTask):
+            image = model_instance.predict_image_to_image(
+                prompt=task.prompt,
+                num_inference_steps=task.num_inference_steps,
+                image_path=task.image_path,
+                callback=_callback,
+            )
         else:
             raise RuntimeError(f"Unexpected Task type {type(task)}")
 
-        image = model_instance.predict(**kwargs)
         self.saveImage(image=image, image_id=task.task_id)
 
     def _worker(self):
@@ -101,7 +106,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
             logger.info(f"Starting {task}")
             with self._states_lock:
                 state = self._states[task.task_id]
-                state.stage = TaskStage.PROCESSING
+                state.stage = api.schemas.TaskStage.PROCESSING
                 state.position = 0
             self._current_task = state.task.task_id
 
@@ -120,7 +125,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 del self._states[task.task_id]
 
 
-def _get_model_instance(requested_model: ModelsEnum) -> Model:
+def _get_model_instance(requested_model: api.schemas.ModelsEnum) -> Model:
     model_class = next(
         cls
         for cls in Model.__subclasses__()

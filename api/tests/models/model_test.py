@@ -11,7 +11,7 @@ from api.models.model import Model
 def test_predict(model_class):
     model: Model = model_class()
     model.load()
-    image = model.predict(
+    image = model.predict_text_to_image(
         prompt="handsome",
         width=1920,
         height=1080,
