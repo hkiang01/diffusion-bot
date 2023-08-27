@@ -1,11 +1,9 @@
 import logging
-import typing
 
 import torch
-from diffusers import DiffusionPipeline
-from PIL.Image import Image
+import diffusers
 
-from api.models.model import Model
+import api.models.model
 
 logger = logging.getLogger(__name__)
 
@@ -13,16 +11,16 @@ logger = logging.getLogger(__name__)
 MODEL = "segmind/small-sd"
 
 
-class SegmindSmallSD(Model):
+class SegmindSmallSD(api.models.model.Model):
     def __init__(self):
-        self.pipe: DiffusionPipeline
+        self.pipe: diffusers.StableDiffusionXLImg2ImgPipeline
 
-    def load(self):
+    def _load(self, task: api.models.model.Task):
         ##############
         # load model #
         ##############
         # see https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/ffd13a1d2ed00b2bbcf5d78c2a347313a3b556c8/README.md#sd-xl-10-base-model-card  # noqa: E501
-        pipe: DiffusionPipeline = DiffusionPipeline.from_pretrained(
+        pipe: diffusers.DiffusionPipeline = diffusers.DiffusionPipeline.from_pretrained(
             MODEL,
             # speedup
             # see https://huggingface.co/docs/diffusers/optimization/fp16#half-precision-weights
@@ -37,25 +35,3 @@ class SegmindSmallSD(Model):
         #####################
         self._speedup(pipe=pipe)
         self.pipe = pipe
-
-    def predict(
-        self,
-        prompt: str,
-        width: int,
-        height: int,
-        num_inference_steps: int,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
-    ) -> Image:
-        ##########################
-        # actually use the model #
-        ##########################
-        image: Image = self.pipe(
-            prompt=prompt,
-            num_inference_steps=num_inference_steps,
-            width=width,
-            height=height,
-            callback=callback,
-        ).images[0]
-        return image

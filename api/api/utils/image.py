@@ -15,6 +15,6 @@ class ImageUtilsMixin:
             image.save(fp=fp)
 
     @staticmethod
-    def image_path(image_id: uuid.UUID) -> os.PathLike:
+    def image_path(image_id: uuid.UUID) -> os.PathLike[str]:
         image_path = os.path.join(OUTPUTS_DIR, f"{str(image_id)}.png")
         return image_path

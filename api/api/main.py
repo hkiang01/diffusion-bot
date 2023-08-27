@@ -23,15 +23,14 @@ async def ping():
 
 @app.post("/predict", status_code=http.HTTPStatus.ACCEPTED)
 async def predict(
-    predict_task_request: api.schemas.PredictTaskRequest,
+    predict_task_request: api.schemas.PredictTaskRequest = fastapi.Depends(),
     image: typing.Annotated[
         fastapi.UploadFile,
         fastapi.File(
             description="Image to blend into a diffusion model",
             media_type="image",
         ),
-    ]
-    | None = None,
+    ] = None,
 ) -> uuid.UUID:
     predict_task = api.schemas.PredictTask(
         model=predict_task_request.model,
@@ -45,7 +44,7 @@ async def predict(
         with open(image_path, "xb") as f:
             image_bytes = await image.read()
             f.write(image_bytes)
-        predict_task.image = image_path
+        predict_task.image_path = image_path
 
     try:
         task_id = api.tasks.PredictTaskQueue.submit(predict_task=predict_task)

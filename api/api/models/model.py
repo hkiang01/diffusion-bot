@@ -1,20 +1,26 @@
-import logging
 import abc
-import torch
+import enum
+import logging
+import pathlib
+import typing
+
 import diffusers
 import PIL.Image
-import typing
+import torch
+
 import api.utils.image
 
 logger = logging.getLogger(__name__)
 
 
+class Task(enum.Enum):
+    TEXT_TO_IMAGE = 1
+    IMAGE_TO_IMAGE = 2
+
+
 class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     def __init__(self):
         self.pipe: diffusers.DiffusionPipeline
-
-    def load(self):
-        raise NotImplementedError()
 
     def predict(
         self,
@@ -22,11 +28,36 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
         width: int,
         height: int,
         num_inference_steps: int,
+        image_path: pathlib.Path | None = None,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
         ] = None,
     ) -> PIL.Image.Image:
-        raise NotImplementedError()
+        kwargs: dict = {
+            "prompt": prompt,
+            "num_inference_steps": num_inference_steps,
+            "callback": callback,
+        }
+
+        image: PIL.Image.Image = None
+        if image_path:
+            image = diffusers.utils.load_image(image=image_path)
+            kwargs["image"] = image
+            self._load(task=Task.IMAGE_TO_IMAGE)
+
+        else:
+            kwargs["width"] = width
+            kwargs["height"] = height
+            self._load(task=Task.TEXT_TO_IMAGE)
+
+        ##########################
+        # actually use the model #
+        ##########################
+        result: PIL.Image.Image = self.pipe(**kwargs).images[0]
+        return result
+
+    def _load(self, task: Task):
+        raise NotImplementedError
 
     def _speedup(self, pipe: diffusers.DiffusionPipeline):
         # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#speed

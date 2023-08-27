@@ -68,7 +68,6 @@ class _PredictTaskQueue(ImageUtilsMixin):
     def _predict(self, predict_task: PredictTask):
         model = predict_task.model
         model_instance: Model = _get_model_instance(requested_model=model)
-        model_instance.load()
 
         state = self._states[self._current_task]
 
@@ -81,6 +80,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
 
         image = model_instance.predict(
             prompt=predict_task.prompt,
+            image_path=predict_task.image_path,
             width=predict_task.width,
             height=predict_task.height,
             num_inference_steps=predict_task.num_inference_steps,

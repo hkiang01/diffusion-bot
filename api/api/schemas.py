@@ -14,11 +14,10 @@ ModelsEnum = enum.StrEnum(Model.__name__, model_subclasses)
 class PredictTaskRequest(pydantic.BaseModel):
     model: ModelsEnum
     prompt: str
-    image: pydantic.FilePath = None
 
     # can change if your GPU has the allowed memory
-    width: pydantic.conint(ge=8, le=2560)
-    height: pydantic.conint(ge=8, le=1440)
+    width: pydantic.conint(ge=8, le=2560) = 512
+    height: pydantic.conint(ge=8, le=1440) = 512
     num_inference_steps: pydantic.PositiveInt = 20
 
     @pydantic.field_validator("width", "height")
@@ -34,6 +33,7 @@ class PredictTaskRequest(pydantic.BaseModel):
 
 class PredictTask(PredictTaskRequest):
     task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
+    image_path: pydantic.FilePath = None
 
 
 class PredictTaskStage(enum.StrEnum):
