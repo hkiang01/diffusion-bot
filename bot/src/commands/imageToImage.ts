@@ -39,7 +39,7 @@ export const buildImageToImageSubcommand = async () => {
         .setDescription("Number of inference steps")
         .setRequired(false)
         .setMinValue(1)
-        .setMaxValue(20)
+        .setMaxValue(50)
     )
     .addNumberOption(option =>
       option
