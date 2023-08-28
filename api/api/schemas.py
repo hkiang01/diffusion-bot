@@ -15,7 +15,7 @@ default_model = list(vars(ModelsEnum).items())[0]
 class BaseRequest(pydantic.BaseModel):
     model: ModelsEnum = default_model
     prompt: str
-    num_inference_steps: pydantic.PositiveInt = 20
+    num_inference_steps: pydantic.PositiveInt | None = None
 
 
 class TextToImageRequest(BaseRequest):
@@ -36,8 +36,8 @@ class TextToImageRequest(BaseRequest):
 
 class ImageToImageRequest(BaseRequest):
     image_url: pydantic.HttpUrl
-    strength: pydantic.confloat(ge=0, le=1) = 0.8
-    guidance_scale: float = 7.5
+    strength: pydantic.confloat(ge=0, le=1) | None = None
+    guidance_scale: float | None = None
 
 
 class TextToImageTask(TextToImageRequest):
@@ -58,5 +58,5 @@ class TaskStage(enum.StrEnum):
 class TaskState(pydantic.BaseModel):
     task: TextToImageTask | ImageToImageTask
     stage: TaskStage = TaskStage.NOT_FOUND
-    percent_complete: pydantic.confloat(ge=0, le=100) = 0
+    steps_completed: int = 0
     position: int = -1

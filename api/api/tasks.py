@@ -61,7 +61,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
             position=position,
             task=state.task,
             stage=state.stage,
-            percent_complete=state.percent_complete,
+            steps_completed=state.steps_completed,
         )
 
     def _predict(
@@ -74,9 +74,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
 
         def _callback(step: int, timestep: int, latents: torch.FloatTensor):
             with self._states_lock:
-                state.percent_complete = (
-                    step / state.task.num_inference_steps * 100
-                )
+                state.steps_completed = step
                 self._states[self._current_task] = state
 
         if isinstance(task, api.schemas.TextToImageTask):

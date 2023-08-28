@@ -1,4 +1,4 @@
-import { Client, Events, REST, Routes } from 'discord.js';
+import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { buildCommands } from './commands';
 import { DISCORD_BOT_TOKEN, DISCORD_OAUTH2_CLIENT_ID } from './constants';
 import { interactionHandler } from './handlers';
@@ -6,7 +6,7 @@ import { interactionHandler } from './handlers';
 const client = new Client(
   {
     intents: [
-      // GatewayIntentBits.Guilds,
+      GatewayIntentBits.MessageContent
     ]
   }
 );

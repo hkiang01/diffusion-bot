@@ -1,40 +1,45 @@
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Channel, EmbedBuilder, Message } from "discord.js";
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
-import { Buttons, Commands, Fields } from "../constants";
+import { Buttons, Fields } from "../constants";
 
-export async function imageToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
+export async function refineHandler(interaction: ButtonInteraction, channel: Channel) {
     // tell discord that we got the interaction
     const deferredReply = await interaction.deferReply({ fetchReply: true });
 
     // get the text channel to which to send results
     if (!channel || !channel.isTextBased()) {
-        await interaction.editReply({ content: `${Commands.ImageToimage} only works in guilds` })
+        await interaction.editReply({ content: `${Buttons.Refine} only works in guilds` })
         await deferredReply.delete()
         return
     }
 
-    // send initial state of request
-    const prompt = interaction.options.getString("prompt", true);
-    const model = interaction.options.getString("model", true)
-    const imageURL = interaction.options.getString("image_url", true)
-    const numInferenceSteps = interaction.options.getInteger("num_inference_steps", false) || undefined;
-    const strength = interaction.options.getNumber("strength", false) || undefined
-    const guidanceScale = interaction.options.getNumber("guidance_scale", false) || undefined
+    const originalMessage = interaction.message;
+    const originalEmbed = originalMessage.embeds[0];
+    const fields = originalEmbed.fields;
 
+    // send initial state of request
+    const prompt = originalMessage.content;
+    const model = fields.find(f => f.name == Fields.Model)?.value;
+    const author = fields.find(f => f.name == Fields.Author)?.value;
+    const refiner = interaction.user.displayName;
+    const imageURL = originalEmbed.image?.url
+
+    if (!model || !author || !imageURL) {
+        await interaction.editReply({ content: `Error while processing ${Buttons.Refine}: ` + 'Unable to resolve model or author or imageURL' })
+        return
+    }
 
     const imageToImageRequest: ImageToImageRequest = {
         model: model,
         prompt: prompt,
         image_url: imageURL,
-        num_inference_steps: numInferenceSteps,
-        strength: strength,
-        guidance_scale: guidanceScale
     }
-    const author = interaction.user.displayName
     const initialEmbed = new EmbedBuilder()
         .setFields([
+            { name: Fields.OriginalMessage, value: originalMessage.url },
             { name: Fields.Author, value: author },
+            { name: Fields.Refiner, value: refiner },
             { name: Fields.Model, value: model },
             { name: Fields.PositionInQueue, value: "N/A" },
             { name: Fields.StepsCompleted, value: "0" },
@@ -49,7 +54,9 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
         const timeElapsed = (new Date().getTime() - start) / 1000;
         const embed = new EmbedBuilder()
             .setFields([
+                { name: Fields.OriginalMessage, value: originalMessage.url },
                 { name: Fields.Author, value: author },
+                { name: Fields.Refiner, value: refiner },
                 { name: Fields.Model, value: model },
                 { name: Fields.PositionInQueue, value: state.position.toString() },
                 { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
@@ -68,7 +75,9 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
     const file = new AttachmentBuilder(path)
     const embed = new EmbedBuilder()
         .setFields([
+            { name: Fields.OriginalMessage, value: originalMessage.url },
             { name: Fields.Author, value: author },
+            { name: Fields.Refiner, value: refiner },
             { name: Fields.Model, value: model },
         ])
         .setImage(`attachment://${submissionId}.png`)

@@ -52,7 +52,7 @@ export const buildImageToImageSubcommand = async () => {
     .addNumberOption(option =>
       option
         .setName("guidance_scale")
-        .setDescription("Higher value = prompt-aligned images, lower quality. Default: 7.5.")
+        .setDescription("Higher value = prompt-aligned images, lower quality.")
         .setRequired(false)
     );
 }

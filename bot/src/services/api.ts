@@ -28,7 +28,7 @@ async function getModels(): Promise<string[]> {
 export type BaseRequest = {
     model: string,
     prompt: string,
-    num_inference_steps: number
+    num_inference_steps?: number
 
 }
 
@@ -90,7 +90,7 @@ export enum TaskStage {
 export class TaskState {
     task!: TextToImageTask
     stage!: TaskStage
-    percent_complete!: number
+    steps_completed!: number
     position!: number
 }
 

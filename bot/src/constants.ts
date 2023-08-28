@@ -23,6 +23,18 @@ export const COMMAND_NAME = 'diffusion-bot'
 export enum Commands {
     TextToImage = 'text-to-image',
     ImageToimage = 'image-to-image',
-
 }
 
+export enum Fields {
+    Author = "Author",
+    Model = "Model",
+    PositionInQueue = "Position in queue",
+    StepsCompleted = "Steps completed",
+    TimeElapsed = "Time elapsed",
+    Refiner = "Refiner",
+    OriginalMessage = "Original Message"
+}
+
+export enum Buttons {
+    Refine = 'refine'
+}

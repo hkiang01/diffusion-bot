@@ -1,7 +1,7 @@
-import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, MessageActionRowComponentBuilder } from "discord.js";
 import fs from 'fs';
 import API, { TextToImageRequest, TaskState } from '../services/api';
-import { Commands } from "../constants";
+import { Buttons, Commands, Fields } from "../constants";
 
 export async function textToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -19,22 +19,23 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
     const model = interaction.options.getString("model", true)
     const width = interaction.options.getInteger("width", false) || 1024
     const height = interaction.options.getInteger("height", false) || 1024
+    const numInferenceSteps = interaction.options.getInteger("num_inference_steps", false) || undefined;
 
     const textToImageRequest: TextToImageRequest = {
         model: model,
         prompt: prompt,
         width: width,
         height: height,
-        num_inference_steps: interaction.options.getInteger("num_inference_steps", false) || 20,
+        num_inference_steps: numInferenceSteps,
     }
     const author = interaction.user.displayName
     const initialEmbed = new EmbedBuilder()
         .setFields([
-            { name: "Author", value: author },
-            { name: "Model", value: model },
-            { name: "Position in queue", value: "N/A" },
-            { name: "Percent complete", value: "0%" },
-            { name: "Time elapsed", value: `0 seconds` },
+            { name: Fields.Author, value: author },
+            { name: Fields.Model, value: model },
+            { name: Fields.PositionInQueue, value: "N/A" },
+            { name: Fields.StepsCompleted, value: "0" },
+            { name: Fields.TimeElapsed, value: `0 seconds` },
 
         ])
     const message: Message = await channel.send({ content: prompt, embeds: [initialEmbed] })
@@ -46,12 +47,11 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
         const timeElapsed = (new Date().getTime() - start) / 1000;
         const embed = new EmbedBuilder()
             .setFields([
-                { name: "Author", value: author },
-                { name: "Model", value: model },
-                { name: "Position in queue", value: state.position.toString() },
-                { name: "Percent complete", value: `${parseInt(state.percent_complete.toString()).toString()}%` },
-                { name: "Time elapsed", value: `${timeElapsed} seconds` },
-
+                { name: Fields.Author, value: author },
+                { name: Fields.Model, value: model },
+                { name: Fields.PositionInQueue, value: state.position.toString() },
+                { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
+                { name: Fields.TimeElapsed, value: `${timeElapsed} seconds` },
             ])
         await message.edit({ content: prompt, embeds: [embed] })
     }
@@ -66,11 +66,19 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
     const file = new AttachmentBuilder(path)
     const embed = new EmbedBuilder()
         .setFields([
-            { name: "Author", value: author },
-            { name: "Model", value: model },
+            { name: Fields.Author, value: author },
+            { name: Fields.Model, value: model },
         ])
         .setImage(`attachment://${submissionId}.png`)
-    await message.edit({ content: prompt, embeds: [embed], files: [file] })
+
+
+    const refineButton = new ButtonBuilder()
+        .setCustomId(Buttons.Refine)
+        .setLabel('Refine Image')
+        .setStyle(ButtonStyle.Primary);
+    const row = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(refineButton);
+    await message.edit({ content: prompt, embeds: [embed], files: [file], components: [row] })
 
     // cleanup
     await new Promise(resolve => fs.unlink(path, resolve))
