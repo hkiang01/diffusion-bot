@@ -5,9 +5,7 @@ metadata:
   labels:
     {{- include "diffusion-bot.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "diffusion-bot.selectorLabels" . | nindent 6 }}
