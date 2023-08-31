@@ -69,7 +69,7 @@ Prerequisites:
 
     ```zsh
     cd ../api
-    poetry run uvicorn api.main:ap api.main:app --port 8000
+    poetry run uvicorn api.main:app --port 8000
     ```
 
 1. Start the bot
