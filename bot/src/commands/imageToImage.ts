@@ -1,13 +1,12 @@
 import { SlashCommandSubcommandBuilder } from '@discordjs/builders';
-// import API from '../services/api';
+import API from '../services/api';
 import { Commands } from '../constants';
 
 
 export const buildImageToImageSubcommand = async () => {
-  // const models = (await API.getModels()).map((model) => {
-  //   return { name: model, value: model }
-  // })
-  const models = [{ "name": "stablediffusionxl", "value": "stablediffusionxl" }]
+  const models = (await API.getImageToImageModels()).map((model) => {
+    return { name: model, value: model }
+  })
 
   return new SlashCommandSubcommandBuilder()
     .setName(Commands.ImageToimage)

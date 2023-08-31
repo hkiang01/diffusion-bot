@@ -10,7 +10,16 @@ const http = axios.create({
     baseURL: API_URL
 })
 
-async function getModels(): Promise<string[]> {
+async function getTextToImageModels(): Promise<string[]> {
+    return await getModels("TextToImage")
+}
+
+async function getImageToImageModels(): Promise<string[]> {
+    return await getModels("ImageoImage")
+}
+
+
+async function getModels(schema: string): Promise<string[]> {
     const config: AxiosRequestConfig = {
         timeout: 30 * 1000
     }
@@ -18,7 +27,7 @@ async function getModels(): Promise<string[]> {
     const openAPISchema = resp.data
     const schemas = openAPISchema.components?.schemas;
     if (schemas) {
-        const models = schemas["Model"]["enum"]
+        const models = schemas[schema]["enum"]
         return models as string[]
     } else {
         throw Error("Unable to get models")
@@ -140,7 +149,8 @@ async function deleteResult(submissionId: typeof uuidv4): Promise<void> {
 
 const API = {
     deleteResult,
-    getModels,
+    getImageToImageModels,
+    getTextToImageModels,
     imageToImage,
     textToImage,
     result
