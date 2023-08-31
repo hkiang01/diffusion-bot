@@ -127,10 +127,6 @@ class StableDiffusionXL(api.models.model.TextToImageModel, api.models.model.Imag
             # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
             torch.backends.cuda.matmul.allow_tf32 = True
             pipe.to("cuda")
-
-            # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
-            pipe.enable_sequential_cpu_offload()
-
         elif (
             torch.backends.mps.is_available() and torch.backends.mps.is_built()
         ):
