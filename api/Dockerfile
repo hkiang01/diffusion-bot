@@ -2,7 +2,8 @@ FROM python:3.11 AS builder
 WORKDIR /app
 ADD pyproject.toml poetry.lock /app/
 
-RUN pip install poetry
+ARG POETRY_VERSION=1.6.1
+RUN pip install poetry==${POETRY_VERSION}
 RUN poetry config virtualenvs.in-project true
 RUN poetry install
 
