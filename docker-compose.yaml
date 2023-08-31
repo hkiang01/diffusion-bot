@@ -2,6 +2,7 @@ version: '3.8'
 services:
   api:
     build: api
+    platform: linux/amd64
     restart: on-failure
     ports:
       - 8000:80
@@ -21,6 +22,7 @@ services:
       LOG_LEVEL: DEBUG
   bot:
     build: bot
+    platform: linux/amd64
     restart: on-failure
     depends_on:
       - api
