@@ -84,7 +84,7 @@ api:
     persistence:
       ## @param api.models.persistence.enabled Enable persistence on models cache
       ##
-      enabled: false
+      enabled: true
       emptyDir:
         ## @param api.models.persistence.medium Provide a medium for `emptyDir` volumes.
         ##
