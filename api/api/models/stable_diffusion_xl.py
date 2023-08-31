@@ -124,6 +124,9 @@ class StableDiffusionXL(api.models.model.Model):
         if torch.cuda.is_available():
             logger.debug("using gpu")
 
+            # see https://huggingface.co/docs/diffusers/v0.20.0/en/optimization/fp16#model-offloading-for-fast-inference-and-memory-savings
+            pipe.enable_model_cpu_offload()
+
             # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
             pipe.enable_sequential_cpu_offload()
 
