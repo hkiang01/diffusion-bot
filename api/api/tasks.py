@@ -74,7 +74,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
 
         def _callback(step: int, timestep: int, latents: torch.FloatTensor):
             with self._states_lock:
-                state.steps_completed = step
+                state.steps_completed = step + 1
                 self._states[self._current_task] = state
 
         if isinstance(task, api.schemas.TextToImageTask):
