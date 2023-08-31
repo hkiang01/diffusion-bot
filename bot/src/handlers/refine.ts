@@ -1,15 +1,15 @@
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Channel, EmbedBuilder, Message } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, Channel, EmbedBuilder, Message, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder } from "discord.js";
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
-import { Buttons, Fields } from "../constants";
+import { Fields, Selects } from "../constants";
 
-export async function refineHandler(interaction: ButtonInteraction, channel: Channel) {
+export async function refineHandler(interaction: StringSelectMenuInteraction, channel: Channel) {
     // tell discord that we got the interaction
     const deferredReply = await interaction.deferReply({ fetchReply: true });
 
     // get the text channel to which to send results
     if (!channel || !channel.isTextBased()) {
-        await interaction.editReply({ content: `${Buttons.Refine} only works in guilds` })
+        await interaction.editReply({ content: `${Selects.RefinerModel} only works in guilds` })
         await deferredReply.delete()
         return
     }
@@ -20,13 +20,13 @@ export async function refineHandler(interaction: ButtonInteraction, channel: Cha
 
     // send initial state of request
     const prompt = originalMessage.content;
-    const model = fields.find(f => f.name == Fields.Model)?.value;
+    const model = interaction.values[0];
     const author = fields.find(f => f.name == Fields.Author)?.value;
     const refiner = interaction.user.displayName;
     const imageURL = originalEmbed.image?.url
 
     if (!model || !author || !imageURL) {
-        await interaction.editReply({ content: `Error while processing ${Buttons.Refine}: ` + 'Unable to resolve model or author or imageURL' })
+        await interaction.editReply({ content: `Error while processing ${Selects.RefinerModel}: ` + 'Unable to resolve model or author or imageURL' })
         return
     }
 
@@ -81,12 +81,17 @@ export async function refineHandler(interaction: ButtonInteraction, channel: Cha
             { name: Fields.Model, value: model },
         ])
         .setImage(`attachment://${submissionId}.png`)
-    const refineButton = new ButtonBuilder()
-        .setCustomId(Buttons.Refine)
-        .setLabel('Refine Image')
-        .setStyle(ButtonStyle.Primary);
-    const row = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(refineButton);
+    const imageToImageModels = await API.getTextToImageModels()
+    const refinerModelSelect = new StringSelectMenuBuilder()
+        .setCustomId(Selects.RefinerModel)
+        .setPlaceholder("Pick a model to refine the image with")
+        .addOptions(imageToImageModels.map((imageToImageModel) =>
+            new StringSelectMenuOptionBuilder()
+                .setLabel(imageToImageModel)
+                .setValue(imageToImageModel)
+        ))
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>()
+        .addComponents(refinerModelSelect);
     await message.edit({ content: prompt, embeds: [embed], files: [file], components: [row] })
 
     // cleanup

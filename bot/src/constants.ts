@@ -34,7 +34,6 @@ export enum Fields {
     Refiner = "Refiner",
     OriginalMessage = "Original Message"
 }
-
-export enum Buttons {
-    Refine = 'refine'
+export enum Selects {
+    RefinerModel = 'refiner-model'
 }
