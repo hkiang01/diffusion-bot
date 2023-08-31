@@ -1,0 +1,21 @@
+{{- if .Values.api.models.persistence.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ printf "%s-models" (include "diffusion-bot.fullname" .) }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "diffusion-bot.labels" . | nindent 4 }}
+  {{- with .Values.api.models.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+  {{- range .Values.api.models.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.api.models.persistence.size | quote }}
+{{- end }}

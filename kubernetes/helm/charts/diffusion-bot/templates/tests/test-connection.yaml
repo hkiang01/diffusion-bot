@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "diffusion-bot.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "diffusion-bot.fullname" . }}:{{ .Values.api.service.port }}']
   restartPolicy: Never
