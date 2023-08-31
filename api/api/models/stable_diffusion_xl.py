@@ -124,15 +124,22 @@ class StableDiffusionXL(api.models.model.Model):
         if torch.cuda.is_available():
             logger.debug("using gpu")
 
-            # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
-            torch.backends.cuda.matmul.allow_tf32 = True
-            pipe.to("cuda")
-
             # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
             pipe.enable_sequential_cpu_offload()
 
-            # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#memory
-            pipe.enable_attention_slicing()
+            # # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#memory
+            # pipe.enable_attention_slicing()
+
+            # # https://huggingface.co/docs/diffusers/v0.20.0/en/optimization/fp16#tiled-vae-decode-and-encode-for-large-images
+            # pipe.scheduler = diffusers.UniPCMultistepScheduler.from_config(
+            #     pipe.scheduler.config
+            # )
+            # pipe.enable_vae_tiling()
+            # pipe.enable_xformers_memory_efficient_attention()
+
+            # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
+            torch.backends.cuda.matmul.allow_tf32 = True
+            pipe.to("cuda")
         elif (
             torch.backends.mps.is_available() and torch.backends.mps.is_built()
         ):
