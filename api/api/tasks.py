@@ -7,7 +7,7 @@ import uuid
 import fastapi.logger
 import torch
 
-from api.models.model import Model
+import api.models.model
 import api.schemas
 from api.utils.image import ImageUtilsMixin
 
@@ -68,7 +68,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
         self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask
     ):
         model = task.model
-        model_instance: Model = _get_model_instance(requested_model=model)
+        model_instance: api.models.model.Model = _get_model_instance(requested_model=model)
 
         state = self._states[self._current_task]
 
@@ -78,6 +78,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 self._states[self._current_task] = state
 
         if isinstance(task, api.schemas.TextToImageTask):
+            model_instance: api.models.model.TextToImageModel
             image = model_instance.predict_text_to_image(
                 prompt=task.prompt,
                 num_inference_steps=task.num_inference_steps,
@@ -86,6 +87,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 callback=_callback,
             )
         elif isinstance(task, api.schemas.ImageToImageTask):
+            model_instance: api.models.model.ImageToImageModel
             image = model_instance.predict_image_to_image(
                 prompt=task.prompt,
                 num_inference_steps=task.num_inference_steps,
@@ -125,13 +127,13 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 del self._states[task.task_id]
 
 
-def _get_model_instance(requested_model: api.schemas.ModelsEnum) -> Model:
+def _get_model_instance(requested_model: api.schemas.TextToImageModelsEnum | api.schemas.ImageToImageModelsEnum) -> api.models.model.Model:
     model_class = next(
         cls
-        for cls in Model.__subclasses__()
+        for cls in api.models.model.TextToImageModel.__subclasses__() + api.models.model.ImageToImageModel.__subclasses__()
         if cls.__name__.lower() == requested_model
     )
-    model: Model = model_class()
+    model: api.models.model.Model = model_class()
     return model
 
 

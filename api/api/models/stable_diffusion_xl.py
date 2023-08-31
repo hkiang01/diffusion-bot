@@ -16,7 +16,7 @@ class Task(enum.Enum):
     IMAGE_TO_IMAGE = 2
 
 
-class StableDiffusionXL(api.models.model.Model):
+class StableDiffusionXL(api.models.model.TextToImageModel, api.models.model.ImageToImageModel):
     def __init__(self):
         self.pipe: diffusers.DiffusionPipeline
 
