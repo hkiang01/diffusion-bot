@@ -303,8 +303,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-/api/inputs
-!/api/inputs/.gitkeep
 /api/outputs
 !/api/outputs/.gitkeep
 /bot/outputs
