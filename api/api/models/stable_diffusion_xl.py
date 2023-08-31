@@ -131,6 +131,8 @@ class StableDiffusionXL(api.models.model.Model):
             # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
             pipe.enable_sequential_cpu_offload()
 
+            # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#memory
+            pipe.enable_attention_slicing()
         elif (
             torch.backends.mps.is_available() and torch.backends.mps.is_built()
         ):
