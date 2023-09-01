@@ -7,14 +7,22 @@ import pydantic
 from api.models import *  # noqa: F401,F403
 import api.models.model
 
-text_to_image_subclasses = [cls.__name__ for cls in api.models.model.TextToImageModel.__subclasses__()]
+text_to_image_subclasses = [
+    cls.__name__ for cls in api.models.model.TextToImageModel.__subclasses__()
+]
 text_to_image_subclasses.sort()
-TextToImageModelsEnum = enum.StrEnum(api.models.model.TextToImageModel.__name__, text_to_image_subclasses)
+TextToImageModelsEnum = enum.StrEnum(
+    api.models.model.TextToImageModel.__name__, text_to_image_subclasses
+)
 default_text_to_image_model = list(vars(TextToImageModelsEnum).items())[0]
 
-image_to_image_subclasses = [cls.__name__ for cls in api.models.model.ImageToImageModel.__subclasses__()]
+image_to_image_subclasses = [
+    cls.__name__ for cls in api.models.model.ImageToImageModel.__subclasses__()
+]
 image_to_image_subclasses.sort()
-ImageToImageModelsEnum = enum.StrEnum(api.models.model.ImageToImageModel.__name__, image_to_image_subclasses)
+ImageToImageModelsEnum = enum.StrEnum(
+    api.models.model.ImageToImageModel.__name__, image_to_image_subclasses
+)
 default_image_to_image_model = list(vars(ImageToImageModelsEnum).items())[0]
 
 
