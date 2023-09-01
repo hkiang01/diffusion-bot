@@ -16,7 +16,9 @@ class Task(enum.Enum):
     IMAGE_TO_IMAGE = 2
 
 
-class StableDiffusionXL(api.models.model.TextToImageModel, api.models.model.ImageToImageModel):
+class StableDiffusionXL(
+    api.models.model.TextToImageModel, api.models.model.ImageToImageModel
+):
     def __init__(self):
         self.pipe: diffusers.DiffusionPipeline
 
@@ -42,7 +44,9 @@ class StableDiffusionXL(api.models.model.TextToImageModel, api.models.model.Imag
         # actually use the model #
         ##########################
         self._load(task=Task.TEXT_TO_IMAGE)
-        result: PIL.Image.Image = self.pipe(**kwargs).images[0]
+
+        with torch.inference_mode():
+            result: PIL.Image.Image = self.pipe(**kwargs).images[0]
         return result
 
     def predict_image_to_image(
@@ -73,7 +77,9 @@ class StableDiffusionXL(api.models.model.TextToImageModel, api.models.model.Imag
             kwargs["guidance_scale"] = guidance_scale
         if num_inference_steps:
             kwargs["num_inference_steps"] = num_inference_steps
-        result: PIL.Image.Image = self.pipe(**kwargs).images[0]
+
+        with torch.inference_mode():
+            result: PIL.Image.Image = self.pipe(**kwargs).images[0]
         return result
 
     def _load(self, task: Task):
@@ -126,7 +132,17 @@ class StableDiffusionXL(api.models.model.TextToImageModel, api.models.model.Imag
 
             # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
             torch.backends.cuda.matmul.allow_tf32 = True
-            pipe.to("cuda")
+
+            # # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
+            # pipe.enable_sequential_cpu_offload()
+
+            # see https://huggingface.co/docs/diffusers/optimization/fp16#model-offloading-for-fast-inference-and-memory-savings
+            pipe.enable_model_cpu_offload()
+
+            # pipe.to("cuda")
+
+            # # see https://huggingface.co/docs/diffusers/optimization/fp16#memory-efficient-attention
+            # pipe.enable_xformers_memory_efficient_attention()
         elif (
             torch.backends.mps.is_available() and torch.backends.mps.is_built()
         ):
