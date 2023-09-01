@@ -72,7 +72,7 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
         .setImage(`attachment://${submissionId}.png`)
 
 
-    const imageToImageModels = await API.getTextToImageModels()
+    const imageToImageModels = await API.getImageToImageModels()
     const refinerModelSelect = new StringSelectMenuBuilder()
         .setCustomId(Selects.RefinerModel)
         .setPlaceholder("Pick a model to refine the image with")

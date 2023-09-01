@@ -11,11 +11,11 @@ const http = axios.create({
 })
 
 async function getTextToImageModels(): Promise<string[]> {
-    return await getModels("TextToImage")
+    return await getModels("TextToImageModel")
 }
 
 async function getImageToImageModels(): Promise<string[]> {
-    return await getModels("ImageoImage")
+    return await getModels("ImageToImageModel")
 }
 
 
@@ -27,8 +27,11 @@ async function getModels(schema: string): Promise<string[]> {
     const openAPISchema = resp.data
     const schemas = openAPISchema.components?.schemas;
     if (schemas) {
-        const models = schemas[schema]["enum"]
-        return models as string[]
+        const schemaObject = schemas[schema];
+        if (!schemaObject) return []
+        if (schemaObject.enum && schemaObject.enum.length > 0) return schemaObject.enum
+        else if (schemaObject.const) return [schemaObject.const]
+        return []
     } else {
         throw Error("Unable to get models")
     }
