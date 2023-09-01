@@ -99,7 +99,7 @@ Prerequisites:
 
     Note: If you don't have a GPU, comment out the following lines in `.devcontainer/devcontainer.json`:
 
-    ```json
+    ```
     // "runArgs": [
     //     "--gpus",
     //     "all"
