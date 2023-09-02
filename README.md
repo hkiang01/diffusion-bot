@@ -69,7 +69,7 @@ Prerequisites:
 
     ```zsh
     cd ../api
-    poetry run uvicorn api.main:ap api.main:app --port 8000
+    poetry run uvicorn api.main:app --port 8000
     ```
 
 1. Start the bot
@@ -99,7 +99,7 @@ Prerequisites:
 
     Note: If you don't have a GPU, comment out the following lines in `.devcontainer/devcontainer.json`:
 
-    ```json
+    ```
     // "runArgs": [
     //     "--gpus",
     //     "all"

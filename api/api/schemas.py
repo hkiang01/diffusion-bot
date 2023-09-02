@@ -5,20 +5,34 @@ import pydantic
 
 # `import *` necessary to dynamically populate names of subclasses of Model
 from api.models import *  # noqa: F401,F403
-from api.models.model import Model
+import api.models.model
 
-model_subclasses = [cls.__name__ for cls in Model.__subclasses__()]
-ModelsEnum = enum.StrEnum(Model.__name__, model_subclasses)
-default_model = list(vars(ModelsEnum).items())[0]
+text_to_image_subclasses = [
+    cls.__name__ for cls in api.models.model.TextToImageModel.__subclasses__()
+]
+text_to_image_subclasses.sort()
+TextToImageModelsEnum = enum.StrEnum(
+    api.models.model.TextToImageModel.__name__, text_to_image_subclasses
+)
+default_text_to_image_model = list(vars(TextToImageModelsEnum).items())[0]
+
+image_to_image_subclasses = [
+    cls.__name__ for cls in api.models.model.ImageToImageModel.__subclasses__()
+]
+image_to_image_subclasses.sort()
+ImageToImageModelsEnum = enum.StrEnum(
+    api.models.model.ImageToImageModel.__name__, image_to_image_subclasses
+)
+default_image_to_image_model = list(vars(ImageToImageModelsEnum).items())[0]
 
 
 class BaseRequest(pydantic.BaseModel):
-    model: ModelsEnum = default_model
     prompt: str
     num_inference_steps: pydantic.PositiveInt | None = None
 
 
 class TextToImageRequest(BaseRequest):
+    model: TextToImageModelsEnum = default_text_to_image_model
     # can change defaults if your GPU has the allowed memory
     width: pydantic.conint(ge=8, le=2560) = 1024
     height: pydantic.conint(ge=8, le=1440) = 1024
@@ -35,6 +49,7 @@ class TextToImageRequest(BaseRequest):
 
 
 class ImageToImageRequest(BaseRequest):
+    model: ImageToImageModelsEnum = default_image_to_image_model
     image_url: pydantic.HttpUrl
     strength: pydantic.confloat(ge=0, le=1) | None = None
     guidance_scale: float | None = None

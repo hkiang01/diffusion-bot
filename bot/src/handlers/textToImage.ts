@@ -1,7 +1,7 @@
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, MessageActionRowComponentBuilder } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 import fs from 'fs';
 import API, { TextToImageRequest, TaskState } from '../services/api';
-import { Buttons, Commands, Fields } from "../constants";
+import { Commands, Fields, Selects } from "../constants";
 
 export async function textToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -72,12 +72,17 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
         .setImage(`attachment://${submissionId}.png`)
 
 
-    const refineButton = new ButtonBuilder()
-        .setCustomId(Buttons.Refine)
-        .setLabel('Refine Image')
-        .setStyle(ButtonStyle.Primary);
-    const row = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(refineButton);
+    const imageToImageModels = await API.getImageToImageModels()
+    const refinerModelSelect = new StringSelectMenuBuilder()
+        .setCustomId(Selects.RefinerModel)
+        .setPlaceholder("Pick a model to refine the image with")
+        .addOptions(imageToImageModels.map((imageToImageModel) =>
+            new StringSelectMenuOptionBuilder()
+                .setLabel(imageToImageModel)
+                .setValue(imageToImageModel)
+        ))
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>()
+        .addComponents(refinerModelSelect);
     await message.edit({ content: prompt, embeds: [embed], files: [file], components: [row] })
 
     // cleanup

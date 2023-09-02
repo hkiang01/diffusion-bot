@@ -1,5 +1,5 @@
 import { Interaction } from 'discord.js';
-import { Buttons, COMMAND_NAME, Commands } from './constants';
+import { COMMAND_NAME, Commands, Selects } from './constants';
 import { textToImageHandler } from './handlers/textToImage';
 import { imageToImageHandler } from './handlers/imageToImage';
 import { refineHandler } from './handlers/refine';
@@ -35,7 +35,7 @@ export async function interactionHandler(interaction: Interaction) {
             await channel.send({ content: `Error, contact bot developers\n${err}` });
         }
 
-    } else if (interaction.isButton()) {
+    } else if (interaction.isStringSelectMenu()) {
         const channelId = interaction.channelId;
         const channel = await interaction.client.channels.fetch(channelId)
 
@@ -45,7 +45,7 @@ export async function interactionHandler(interaction: Interaction) {
         }
         try {
             switch (interaction.customId) {
-                case Buttons.Refine:
+                case Selects.RefinerModel:
                     await refineHandler(interaction, channel);
                     break;
                 default:

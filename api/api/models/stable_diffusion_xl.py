@@ -16,7 +16,9 @@ class Task(enum.Enum):
     IMAGE_TO_IMAGE = 2
 
 
-class StableDiffusionXL(api.models.model.Model):
+class StableDiffusionXL(
+    api.models.model.TextToImageModel, api.models.model.ImageToImageModel
+):
     def __init__(self):
         self.pipe: diffusers.DiffusionPipeline
 
@@ -42,7 +44,9 @@ class StableDiffusionXL(api.models.model.Model):
         # actually use the model #
         ##########################
         self._load(task=Task.TEXT_TO_IMAGE)
-        result: PIL.Image.Image = self.pipe(**kwargs).images[0]
+
+        with torch.inference_mode():
+            result: PIL.Image.Image = self.pipe(**kwargs).images[0]
         return result
 
     def predict_image_to_image(
@@ -73,7 +77,9 @@ class StableDiffusionXL(api.models.model.Model):
             kwargs["guidance_scale"] = guidance_scale
         if num_inference_steps:
             kwargs["num_inference_steps"] = num_inference_steps
-        result: PIL.Image.Image = self.pipe(**kwargs).images[0]
+
+        with torch.inference_mode():
+            result: PIL.Image.Image = self.pipe(**kwargs).images[0]
         return result
 
     def _load(self, task: Task):
@@ -124,29 +130,19 @@ class StableDiffusionXL(api.models.model.Model):
         if torch.cuda.is_available():
             logger.debug("using gpu")
 
-            # see https://huggingface.co/docs/diffusers/v0.20.0/en/optimization/fp16#tiled-vae-decode-and-encode-for-large-images
-            pipe.enable_vae_tiling()
-            pipe.enable_xformers_memory_efficient_attention()
-
-            # # see https://huggingface.co/docs/diffusers/v0.20.0/en/optimization/fp16#model-offloading-for-fast-inference-and-memory-savings
-            # pipe.enable_model_cpu_offload()
-
-            # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
-            pipe.enable_sequential_cpu_offload()
-
-            # # see https://huggingface.co/docs/diffusers/v0.20.0/en/stable_diffusion#memory
-            # pipe.enable_attention_slicing()
-
-            # # https://huggingface.co/docs/diffusers/v0.20.0/en/optimization/fp16#tiled-vae-decode-and-encode-for-large-images
-            # pipe.scheduler = diffusers.UniPCMultistepScheduler.from_config(
-            #     pipe.scheduler.config
-            # )
-            # pipe.enable_vae_tiling()
-            # pipe.enable_xformers_memory_efficient_attention()
-
-            # # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
+            # see https://huggingface.co/docs/diffusers/optimization/fp16#use-tf32-instead-of-fp32-on-ampere-and-later-cuda-devices
             torch.backends.cuda.matmul.allow_tf32 = True
+
+            # # see https://huggingface.co/docs/diffusers/optimization/fp16#offloading-to-cpu-with-accelerate-for-memory-savings
+            # pipe.enable_sequential_cpu_offload()
+
+            # see https://huggingface.co/docs/diffusers/optimization/fp16#model-offloading-for-fast-inference-and-memory-savings
+            pipe.enable_model_cpu_offload()
+
             # pipe.to("cuda")
+
+            # # see https://huggingface.co/docs/diffusers/optimization/fp16#memory-efficient-attention
+            # pipe.enable_xformers_memory_efficient_attention()
         elif (
             torch.backends.mps.is_available() and torch.backends.mps.is_built()
         ):

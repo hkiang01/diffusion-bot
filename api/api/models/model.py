@@ -9,8 +9,10 @@ import api.utils.image
 
 logger = logging.getLogger(__name__)
 
+class Model(abc.ABC):
+    pass
 
-class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
+class TextToImageModel(Model, api.utils.image.ImageUtilsMixin):
     def predict_text_to_image(
         self,
         prompt: str,
@@ -23,6 +25,7 @@ class Model(abc.ABC, api.utils.image.ImageUtilsMixin):
     ) -> PIL.Image.Image:
         raise NotImplementedError()
 
+class ImageToImageModel(Model, api.utils.image.ImageUtilsMixin):
     def predict_image_to_image(
         self,
         prompt: str,
