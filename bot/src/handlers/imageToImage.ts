@@ -2,6 +2,7 @@ import { ActionRowBuilder, AttachmentBuilder, Channel, ChatInputCommandInteracti
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
 import { Commands, Fields, Selects } from "../constants";
+import { generateRefinerSelectActionRow } from "./utils";
 
 export async function imageToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -72,17 +73,7 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
             { name: Fields.Model, value: model },
         ])
         .setImage(`attachment://${submissionId}.png`)
-    const imageToImageModels = await API.getImageToImageModels()
-    const refinerModelSelect = new StringSelectMenuBuilder()
-        .setCustomId(Selects.RefinerModel)
-        .setPlaceholder("Pick a model to refine the image with")
-        .addOptions(imageToImageModels.map((imageToImageModel) =>
-            new StringSelectMenuOptionBuilder()
-                .setLabel(imageToImageModel)
-                .setValue(imageToImageModel)
-        ))
-    const row = new ActionRowBuilder<StringSelectMenuBuilder>()
-        .addComponents(refinerModelSelect);
+    const row = await generateRefinerSelectActionRow()
     await message.edit({ content: prompt, embeds: [embed], files: [file], components: [row] })
 
     // cleanup
