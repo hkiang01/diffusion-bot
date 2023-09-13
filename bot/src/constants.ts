@@ -28,7 +28,7 @@ export enum Selects {
     RefinerModel = 'refiner-model',
 }
 export enum Buttons {
-    ReDraw = 'redraw'
+    ReDraw = 'Redraw'
 }
 export enum Emojis {
     ReDraw = '🔄'

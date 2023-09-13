@@ -20,6 +20,7 @@ export async function generateRefinerSelectActionRow(): Promise<ActionRowBuilder
 export function generateRedrawButton(): ActionRowBuilder<ButtonBuilder> {
     const button = new ButtonBuilder()
         .setCustomId(Buttons.ReDraw)
+        .setLabel(Buttons.ReDraw)
         .setEmoji(Emojis.ReDraw)
         .setStyle(ButtonStyle.Primary)
     const row = new ActionRowBuilder<ButtonBuilder>()
