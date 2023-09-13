@@ -1,10 +1,10 @@
-import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
+import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, GuildBasedChannel, Message, PartialTextBasedChannelFields, TextBasedChannel } from "discord.js";
 import fs from 'fs';
 import API, { TextToImageRequest, TaskState } from '../services/api';
-import { Commands, Fields } from "../constants";
-import { generateRefinerSelectActionRow } from "./utils";
+import { Buttons, Commands, Fields } from "../constants";
+import { generateRedrawButton, generateRefinerSelectActionRow } from "./utils";
 
-export async function textToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
+export async function textToImageCommandHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
     const deferredReply = await interaction.deferReply({ fetchReply: true });
 
@@ -17,6 +17,7 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
 
     // send initial state of request
     const prompt = interaction.options.getString("prompt", true);
+    const author = interaction.user.displayName;
     const model = interaction.options.getString("model", true)
     const width = interaction.options.getInteger("width", false) || 1024
     const height = interaction.options.getInteger("height", false) || 1024
@@ -29,17 +30,59 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
         height: height,
         num_inference_steps: numInferenceSteps,
     }
-    const author = interaction.user.displayName
+    await processTextToImageRequest(textToImageRequest, author, channel, deferredReply)
+}
+
+export async function textToImageButtonHandler(interaction: ButtonInteraction, channel: Channel) {
+    // tell discord that we got the interaction
+    const deferredReply = await interaction.deferReply({ fetchReply: true });
+
+    // get the text channel to which to send results
+    if (!channel || !channel.isTextBased()) {
+        await interaction.editReply({ content: `${Commands.TextToImage} only works in guilds` })
+        await deferredReply.delete()
+        return
+    }
+
+    const originalMessage = interaction.message;
+    const originalEmbed = originalMessage.embeds[0];
+    const fields = originalEmbed.fields;
+
+    // send initial state of request
+    const prompt = originalMessage.content;
+    const model = fields.find(f => f.name == Fields.Model)?.value;
+    const author = interaction.user.displayName;
+    const width = originalEmbed.image?.width;
+    const height = originalEmbed.image?.height;
+    const numInferenceSteps = fields.find(f => f.name == Fields.NumInferenceSteps)?.value;
+
+    if (!model || !width || !height || !numInferenceSteps || !author) {
+        await interaction.editReply({ content: `Error while processing ${Buttons.ReDraw}: ` + 'Unable to resolve model or width or height or numInferenceSteps or author' })
+        return
+    }
+
+    const textToImageRequest: TextToImageRequest = {
+        model: model,
+        prompt: prompt,
+        width: width,
+        height: height,
+        num_inference_steps: numInferenceSteps != "N/A" ? parseInt(numInferenceSteps) : undefined,
+    }
+    await processTextToImageRequest(textToImageRequest, author, channel, deferredReply)
+}
+
+async function processTextToImageRequest(textToImageRequest: TextToImageRequest, author: string, channel: PartialTextBasedChannelFields, deferredReply: Message) {
     const initialEmbed = new EmbedBuilder()
         .setFields([
             { name: Fields.Author, value: author },
-            { name: Fields.Model, value: model },
+            { name: Fields.Model, value: textToImageRequest.model },
             { name: Fields.PositionInQueue, value: "N/A" },
+            { name: Fields.NumInferenceSteps, value: textToImageRequest.num_inference_steps?.toString() || "N/A" },
             { name: Fields.StepsCompleted, value: "0" },
             { name: Fields.TimeElapsed, value: `0 seconds` },
 
         ])
-    const message: Message = await channel.send({ content: prompt, embeds: [initialEmbed] })
+    const message: Message = await channel.send({ content: textToImageRequest.prompt, embeds: [initialEmbed] })
     // prevent error after 15 minutes of not responding to interaction
     await deferredReply.delete()
 
@@ -49,12 +92,13 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
         const embed = new EmbedBuilder()
             .setFields([
                 { name: Fields.Author, value: author },
-                { name: Fields.Model, value: model },
+                { name: Fields.Model, value: textToImageRequest.model },
                 { name: Fields.PositionInQueue, value: state.position.toString() },
+                { name: Fields.NumInferenceSteps, value: textToImageRequest.num_inference_steps?.toString() || "N/A" },
                 { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
                 { name: Fields.TimeElapsed, value: `${timeElapsed} seconds` },
             ])
-        await message.edit({ content: prompt, embeds: [embed] })
+        await message.edit({ content: textToImageRequest.prompt, embeds: [embed] })
     }
 
     // actually start the polling
@@ -68,13 +112,15 @@ export async function textToImageHandler(interaction: ChatInputCommandInteractio
     const embed = new EmbedBuilder()
         .setFields([
             { name: Fields.Author, value: author },
-            { name: Fields.Model, value: model },
+            { name: Fields.Model, value: textToImageRequest.model },
+            { name: Fields.NumInferenceSteps, value: textToImageRequest.num_inference_steps?.toString() || "N/A" },
         ])
         .setImage(`attachment://${submissionId}.png`)
 
 
-    const row = await generateRefinerSelectActionRow()
-    await message.edit({ content: prompt, embeds: [embed], files: [file], components: [row] })
+    const selectActionRow = await generateRefinerSelectActionRow()
+    const redrawButtonRow = generateRedrawButton()
+    await message.edit({ content: textToImageRequest.prompt, embeds: [embed], files: [file], components: [redrawButtonRow, selectActionRow] })
 
     // cleanup
     await new Promise(resolve => fs.unlink(path, resolve))

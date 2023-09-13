@@ -28,6 +28,14 @@ export const buildTextToImageSubcommand = async () => {
     )
     .addIntegerOption(option =>
       option
+        .setName("num_inference_steps")
+        .setDescription("Number of inference steps")
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(20)
+    )
+    .addIntegerOption(option =>
+      option
         .setName("width")
         .setDescription("Width of image")
         .setRequired(false)
@@ -41,14 +49,5 @@ export const buildTextToImageSubcommand = async () => {
         .setRequired(false)
         .setMinValue(8)
         .setMaxValue(1440) // can change if your GPU has the allowed memory
-    )
-    .addIntegerOption(option =>
-      option
-        .setName("num_inference_steps")
-        .setDescription("Number of inference steps")
-        .setRequired(false)
-        .setMinValue(1)
-        .setMaxValue(20)
-    )
-    ;
+    );
 }

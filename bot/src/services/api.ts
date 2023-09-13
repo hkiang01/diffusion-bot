@@ -41,7 +41,6 @@ export type BaseRequest = {
     model: string,
     prompt: string,
     num_inference_steps?: number
-
 }
 
 export interface TextToImageRequest extends BaseRequest {

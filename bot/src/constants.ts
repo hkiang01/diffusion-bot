@@ -24,16 +24,23 @@ export enum Commands {
     TextToImage = 'text-to-image',
     ImageToimage = 'image-to-image',
 }
-
+export enum Selects {
+    RefinerModel = 'refiner-model',
+}
+export enum Buttons {
+    ReDraw = 'redraw'
+}
+export enum Emojis {
+    ReDraw = '🔄'
+}
 export enum Fields {
     Author = "Author",
     Model = "Model",
     PositionInQueue = "Position in queue",
+    NumInferenceSteps = "Number of inference steps",
     StepsCompleted = "Steps completed",
     TimeElapsed = "Time elapsed",
     Refiner = "Refiner",
     OriginalMessage = "Original Message"
 }
-export enum Selects {
-    RefinerModel = 'refiner-model'
-}
+

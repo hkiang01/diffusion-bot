@@ -1,6 +1,6 @@
 import { Interaction } from 'discord.js';
-import { COMMAND_NAME, Commands, Selects } from './constants';
-import { textToImageHandler } from './handlers/textToImage';
+import { Buttons, COMMAND_NAME, Commands, Selects } from './constants';
+import { textToImageButtonHandler, textToImageCommandHandler } from './handlers/textToImage';
 import { imageToImageHandler } from './handlers/imageToImage';
 import { refineHandler } from './handlers/refine';
 
@@ -21,7 +21,7 @@ export async function interactionHandler(interaction: Interaction) {
         try {
             switch (interaction.options.getSubcommand()) {
                 case Commands.TextToImage:
-                    await textToImageHandler(interaction, channel);
+                    await textToImageCommandHandler(interaction, channel);
                     break;
                 case Commands.ImageToimage:
                     await imageToImageHandler(interaction, channel);
@@ -34,8 +34,30 @@ export async function interactionHandler(interaction: Interaction) {
             console.error(err);
             await channel.send({ content: `Error, contact bot developers\n${err}` });
         }
+    } else if (interaction.isButton()) {
+        const channelId = interaction.channelId;
+        const channel = await interaction.client.channels.fetch(channelId)
 
-    } else if (interaction.isStringSelectMenu()) {
+        if (!channel || !channel.isTextBased()) {
+            await interaction.reply({ content: `${COMMAND_NAME} only works in text channels`, ephemeral: true })
+            return
+        }
+
+        try {
+            switch (interaction.customId) {
+                case Buttons.ReDraw:
+                    await textToImageButtonHandler(interaction, channel);
+                    break;
+                default:
+                    await interaction.followUp({ ephemeral: true, content: 'Unrecognized button' });
+                    break;
+            }
+        } catch (err) {
+            console.error(err);
+            await channel.send({ content: `Error, contact bot developers\n${err}` });
+        }
+    }
+    else if (interaction.isStringSelectMenu()) {
         const channelId = interaction.channelId;
         const channel = await interaction.client.channels.fetch(channelId)
 
