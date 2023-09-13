@@ -32,7 +32,7 @@ export const buildTextToImageSubcommand = async () => {
         .setDescription("Number of inference steps. 20 is good default.")
         .setRequired(true)
         .setMinValue(1)
-        .setMaxValue(20)
+        .setMaxValue(50)
     )
     .addIntegerOption(option =>
       option
