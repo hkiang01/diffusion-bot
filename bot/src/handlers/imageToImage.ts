@@ -2,7 +2,7 @@ import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, 
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
 import { Commands, Fields } from "../constants";
-import { generateRefinerSelectActionRow } from "./utils";
+import { generateRedrawButton, generateRefinerSelectActionRow } from "./utils";
 
 export async function imageToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -38,6 +38,7 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
             { name: Fields.Author, value: author },
             { name: Fields.Model, value: model },
             { name: Fields.PositionInQueue, value: "N/A" },
+            { name: Fields.NumInferenceSteps, value: numInferenceSteps?.toString() || "N/A" },
             { name: Fields.StepsCompleted, value: "0" },
             { name: Fields.TimeElapsed, value: `0 seconds` },
         ])
@@ -53,6 +54,7 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
                 { name: Fields.Author, value: author },
                 { name: Fields.Model, value: model },
                 { name: Fields.PositionInQueue, value: state.position.toString() },
+                { name: Fields.NumInferenceSteps, value: numInferenceSteps?.toString() || "N/A" },
                 { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
                 { name: Fields.TimeElapsed, value: `${timeElapsed} seconds` },
             ])
@@ -71,10 +73,13 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
         .setFields([
             { name: Fields.Author, value: author },
             { name: Fields.Model, value: model },
+            { name: Fields.NumInferenceSteps, value: numInferenceSteps?.toString() || "N/A" },
+
         ])
         .setImage(`attachment://${submissionId}.png`)
-    const row = await generateRefinerSelectActionRow()
-    await message.edit({ content: prompt, embeds: [embed], files: [file], components: [row] })
+    const selectActionRow = await generateRefinerSelectActionRow()
+    const redrawButtonRow = generateRedrawButton()
+    await message.edit({ content: prompt, embeds: [embed], files: [file], components: [selectActionRow, redrawButtonRow] })
 
     // cleanup
     await new Promise(resolve => fs.unlink(path, resolve))
