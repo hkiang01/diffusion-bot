@@ -1,4 +1,4 @@
-import { ActionRowBuilder, AttachmentBuilder, Channel, EmbedBuilder, Message, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder } from "discord.js";
+import { AttachmentBuilder, Channel, EmbedBuilder, Message, StringSelectMenuInteraction } from "discord.js";
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
 import { Fields, Selects } from "../constants";

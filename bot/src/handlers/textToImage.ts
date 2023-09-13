@@ -1,7 +1,7 @@
-import { ActionRowBuilder, AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
 import fs from 'fs';
 import API, { TextToImageRequest, TaskState } from '../services/api';
-import { Commands, Fields, Selects } from "../constants";
+import { Commands, Fields } from "../constants";
 import { generateRefinerSelectActionRow } from "./utils";
 
 export async function textToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
