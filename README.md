@@ -26,18 +26,18 @@ Prerequisites:
    
    API dependencies
 
-    ```zsh
-    cd api
-    poetry config virtualenvs.in-project true
-    poetry install
-    ```
-    
-    Note: If the GPU version of torch isn't compatible with your machine, change the dependency as follows:
-
+    Configure `api\pyproject.toml`.
+    If the GPU version of torch isn't compatible with your machine, change the dependency as follows:
     ```toml
     # pyproject.toml
     torch = { version = "^2.0.1" } # cpu
     # torch = { version = "^2.0.1", source = "cu118" } # gpu
+    ```
+
+    ```zsh
+    cd api
+    poetry config virtualenvs.in-project true
+    poetry install
     ```
 
     bot dependencies
