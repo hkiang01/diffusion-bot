@@ -1,4 +1,4 @@
-import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, GuildBasedChannel, Message, PartialTextBasedChannelFields, TextBasedChannel } from "discord.js";
+import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, PartialTextBasedChannelFields } from "discord.js";
 import fs from 'fs';
 import API, { TextToImageRequest, TaskState } from '../services/api';
 import { Buttons, Commands, Fields } from "../constants";
