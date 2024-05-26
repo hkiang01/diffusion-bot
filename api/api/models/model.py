@@ -18,6 +18,7 @@ class TextToImageModel(Model, api.utils.image.ImageUtilsMixin):
         prompt: str,
         width: int,
         height: int,
+        callback_steps: int,
         num_inference_steps: int | None = None,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
@@ -30,6 +31,7 @@ class ImageToImageModel(Model, api.utils.image.ImageUtilsMixin):
         self,
         prompt: str,
         image_url: str,
+        callback_steps: int,
         num_inference_steps: int | None = None,
         strength: float | None = None,
         guidance_scale: float | None = None,
@@ -38,3 +40,4 @@ class ImageToImageModel(Model, api.utils.image.ImageUtilsMixin):
         ] = None,
     ) -> PIL.Image.Image:
         raise NotImplementedError()
+

@@ -29,6 +29,7 @@ default_image_to_image_model = list(vars(ImageToImageModelsEnum).items())[0]
 class BaseRequest(pydantic.BaseModel):
     prompt: str
     num_inference_steps: pydantic.PositiveInt | None = None
+    callback_steps: pydantic.PositiveInt = 10
 
 
 class TextToImageRequest(BaseRequest):

@@ -27,6 +27,7 @@ class SDXLTurbo(
         prompt: str,
         width: int,
         height: int,
+        callback_steps: int,
         num_inference_steps: int | None = None,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
@@ -37,6 +38,7 @@ class SDXLTurbo(
             "callback": callback,
             "width": width,
             "height": height,
+            "callback_steps": callback_steps
         }
         if num_inference_steps:
             kwargs["num_inference_steps"] = num_inference_steps
@@ -53,6 +55,7 @@ class SDXLTurbo(
         self,
         prompt: str,
         image_url: str,
+        callback_steps: int,
         num_inference_steps: int | None = None,
         strength: float | None = None,
         guidance_scale: float | None = None,
@@ -70,6 +73,8 @@ class SDXLTurbo(
             "prompt": prompt,
             "callback": callback,
             "image": image,
+            "callback_steps": callback_steps
+
         }
         if strength:
             kwargs["strength"] = strength

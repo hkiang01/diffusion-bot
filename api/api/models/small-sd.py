@@ -21,6 +21,8 @@ class SmallSD(api.models.model.TextToImageModel):
         prompt: str,
         width: int,
         height: int,
+        callback_steps: int,
+
         num_inference_steps: int | None = None,
         callback: typing.Optional[
             typing.Callable[[int, int, torch.FloatTensor], None]
@@ -31,6 +33,7 @@ class SmallSD(api.models.model.TextToImageModel):
             "callback": callback,
             "width": width,
             "height": height,
+            "callback_steps": callback_steps
         }
         if num_inference_steps:
             kwargs["num_inference_steps"] = num_inference_steps
@@ -57,7 +60,6 @@ class SmallSD(api.models.model.TextToImageModel):
             else None,
             safety_checker=None,
             requires_safety_checker=False,
-            variant="fp16",
         )
 
         #####################
