@@ -28,7 +28,7 @@ Prerequisites:
 
     ```zsh
     cd api
-    poetry config virtualenvs.in-project=true
+    poetry config virtualenvs.in-project true
     poetry install
     ```
     
