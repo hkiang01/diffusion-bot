@@ -35,7 +35,7 @@ async def text_to_image(
     )
 
     try:
-        task_id = api.tasks.PredictTaskQueue.submit(task=task)
+        api.tasks.PredictTaskQueue.submit(task=task)
     except queue.Full as exc:
         raise fastapi.exceptions.HTTPException(
             detail=str(exc),
@@ -43,7 +43,7 @@ async def text_to_image(
             headers={"Retry-After": "60"},
         )
     return fastapi.responses.PlainTextResponse(
-        content=str(task_id),
+        content=str(task.task_id),
         status_code=http.HTTPStatus.ACCEPTED,
     )
 
@@ -60,7 +60,7 @@ async def text_to_video(
     )
 
     try:
-        task_id = api.tasks.PredictTaskQueue.submit(task=task)
+        api.tasks.PredictTaskQueue.submit(task=task)
     except queue.Full as exc:
         raise fastapi.exceptions.HTTPException(
             detail=str(exc),
@@ -68,7 +68,7 @@ async def text_to_video(
             headers={"Retry-After": "60"},
         )
     return fastapi.responses.PlainTextResponse(
-        content=str(task_id),
+        content=str(task.task_id),
         status_code=http.HTTPStatus.ACCEPTED,
     )
 
@@ -87,7 +87,7 @@ async def image_to_image(
     )
 
     try:
-        task_id = api.tasks.PredictTaskQueue.submit(task=task)
+        api.tasks.PredictTaskQueue.submit(task=task)
     except queue.Full as exc:
         raise fastapi.exceptions.HTTPException(
             detail=str(exc),
@@ -95,7 +95,7 @@ async def image_to_image(
             headers={"Retry-After": "60"},
         )
     return fastapi.responses.PlainTextResponse(
-        content=str(task_id),
+        content=str(task.task_id),
         status_code=http.HTTPStatus.ACCEPTED,
     )
 
@@ -104,22 +104,13 @@ async def image_to_image(
 @app.get("/status")
 async def status(
     task_id: uuid.UUID,
-) -> api.schemas.TaskState:
-    try:
-        task_info = api.tasks.PredictTaskQueue.status(task_id=task_id)
-    except KeyError:
-        raise fastapi.exceptions.HTTPException(
-            status_code=http.HTTPStatus.NOT_FOUND,
-            detail=api.schemas.TaskStage.NOT_FOUND,
-        )
-
-    if isinstance(task_info, str):
+) ->str | None:
+    status = api.tasks.PredictTaskQueue.status(task_id=task_id)
+    if isinstance(status, str):
         return fastapi.responses.RedirectResponse(
             url=f"/result?task_id={task_id}",
             status_code=http.HTTPStatus.SEE_OTHER,
         )
-
-    return task_info
 
 
 @app.get("/result")

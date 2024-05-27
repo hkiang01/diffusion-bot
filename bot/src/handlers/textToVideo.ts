@@ -1,6 +1,6 @@
 import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, PartialTextBasedChannelFields } from "discord.js";
 import fs from 'fs';
-import API, { TextToVideoRequest, TaskState } from '../services/api';
+import API, { TextToVideoRequest } from '../services/api';
 import { Buttons, Commands, Fields } from "../constants";
 import { generateRecreateVideoButton, generateRefineImageSelectActionRow } from "./utils";
 
@@ -48,8 +48,6 @@ export async function textToVideoButtonHandler(interaction: ButtonInteraction, c
     const prompt = originalMessage.content;
     const model = fields.find(f => f.name == Fields.Model)?.value;
     const author = interaction.user.displayName;
-    const width = originalEmbed.image?.width;
-    const height = originalEmbed.image?.height;
     const numInferenceSteps = fields.find(f => f.name == Fields.NumInferenceSteps)?.value;
 
     if (!model || !numInferenceSteps || !author) {
@@ -70,9 +68,7 @@ async function processTextToVideoRequest(textToVideoRequest: TextToVideoRequest,
         .setFields([
             { name: Fields.Author, value: author },
             { name: Fields.Model, value: textToVideoRequest.model },
-            { name: Fields.PositionInQueue, value: "N/A" },
             { name: Fields.NumInferenceSteps, value: textToVideoRequest.num_inference_steps?.toString() || "N/A" },
-            { name: Fields.StepsCompleted, value: "0" },
             { name: Fields.TimeElapsed, value: `0 seconds` },
 
         ])
@@ -80,16 +76,14 @@ async function processTextToVideoRequest(textToVideoRequest: TextToVideoRequest,
     // prevent error after 15 minutes of not responding to interaction
     await deferredReply.delete()
 
-    // update request state every polling interval
-    const callback = async (state: TaskState) => {
+    // update request task every polling interval
+    const callback = async () => {
         const timeElapsed = (new Date().getTime() - start) / 1000;
         const embed = new EmbedBuilder()
             .setFields([
                 { name: Fields.Author, value: author },
                 { name: Fields.Model, value: textToVideoRequest.model },
-                { name: Fields.PositionInQueue, value: state.position.toString() },
                 { name: Fields.NumInferenceSteps, value: textToVideoRequest.num_inference_steps?.toString() || "N/A" },
-                { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
                 { name: Fields.TimeElapsed, value: `${timeElapsed} seconds` },
             ])
         await message.edit({ content: textToVideoRequest.prompt, embeds: [embed] })

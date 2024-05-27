@@ -1,6 +1,6 @@
 import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteraction, EmbedBuilder, Message, PartialTextBasedChannelFields } from "discord.js";
 import fs from 'fs';
-import API, { TextToImageRequest, TaskState } from '../services/api';
+import API, { TextToImageRequest } from '../services/api';
 import { Buttons, Commands, Fields } from "../constants";
 import { generateRedrawImageButton, generateRefineImageSelectActionRow } from "./utils";
 
@@ -76,9 +76,7 @@ async function processTextToImageRequest(textToImageRequest: TextToImageRequest,
         .setFields([
             { name: Fields.Author, value: author },
             { name: Fields.Model, value: textToImageRequest.model },
-            { name: Fields.PositionInQueue, value: "N/A" },
             { name: Fields.NumInferenceSteps, value: textToImageRequest.num_inference_steps?.toString() || "N/A" },
-            { name: Fields.StepsCompleted, value: "0" },
             { name: Fields.TimeElapsed, value: `0 seconds` },
 
         ])
@@ -86,16 +84,14 @@ async function processTextToImageRequest(textToImageRequest: TextToImageRequest,
     // prevent error after 15 minutes of not responding to interaction
     await deferredReply.delete()
 
-    // update request state every polling interval
-    const callback = async (state: TaskState) => {
+    // update request task every polling interval
+    const callback = async () => {
         const timeElapsed = (new Date().getTime() - start) / 1000;
         const embed = new EmbedBuilder()
             .setFields([
                 { name: Fields.Author, value: author },
                 { name: Fields.Model, value: textToImageRequest.model },
-                { name: Fields.PositionInQueue, value: state.position.toString() },
                 { name: Fields.NumInferenceSteps, value: textToImageRequest.num_inference_steps?.toString() || "N/A" },
-                { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
                 { name: Fields.TimeElapsed, value: `${timeElapsed} seconds` },
             ])
         await message.edit({ content: textToImageRequest.prompt, embeds: [embed] })

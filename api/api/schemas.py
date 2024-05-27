@@ -78,23 +78,12 @@ class ImageToImageRequest(BaseRequest):
 
 class TextToImageTask(TextToImageRequest):
     task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
+    steps_completed: int = 0
 
 class TextToVideoTask(TextToVideoRequest):
     task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
+    steps_completed: int = 0
 
 class ImageToImageTask(ImageToImageRequest):
     task_id: pydantic.UUID4 = pydantic.Field(default_factory=uuid.uuid4)
-
-
-class TaskStage(enum.StrEnum):
-    PENDING = "PENDING"
-    PROCESSING = "PROCESSING"
-    COMPLETE = "COMPLETE"
-    NOT_FOUND = "NOT FOUND"
-
-
-class TaskState(pydantic.BaseModel):
-    task: TextToImageTask | ImageToImageTask | TextToVideoTask
-    stage: TaskStage = TaskStage.NOT_FOUND
     steps_completed: int = 0
-    position: int = -1

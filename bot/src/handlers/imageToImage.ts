@@ -1,6 +1,6 @@
 import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, Message } from "discord.js";
 import fs from 'fs';
-import API, { ImageToImageRequest, TaskState } from '../services/api';
+import API, { ImageToImageRequest } from '../services/api';
 import { Commands, Fields } from "../constants";
 import { generateRedrawImageButton, generateRefineImageSelectActionRow } from "./utils";
 
@@ -37,25 +37,21 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
         .setFields([
             { name: Fields.Author, value: author },
             { name: Fields.Model, value: model },
-            { name: Fields.PositionInQueue, value: "N/A" },
             { name: Fields.NumInferenceSteps, value: numInferenceSteps?.toString() || "N/A" },
-            { name: Fields.StepsCompleted, value: "0" },
             { name: Fields.TimeElapsed, value: `0 seconds` },
         ])
     const message: Message = await channel.send({ content: prompt, embeds: [initialEmbed] })
     // prevent error after 15 minutes of not responding to interaction
     await deferredReply.delete()
 
-    // update request state every polling interval
-    const callback = async (state: TaskState) => {
+    // update request task every polling interval
+    const callback = async () => {
         const timeElapsed = (new Date().getTime() - start) / 1000;
         const embed = new EmbedBuilder()
             .setFields([
                 { name: Fields.Author, value: author },
                 { name: Fields.Model, value: model },
-                { name: Fields.PositionInQueue, value: state.position.toString() },
                 { name: Fields.NumInferenceSteps, value: numInferenceSteps?.toString() || "N/A" },
-                { name: Fields.StepsCompleted, value: `${parseInt(state.steps_completed.toString()).toString()}` },
                 { name: Fields.TimeElapsed, value: `${timeElapsed} seconds` },
             ])
         await message.edit({ content: prompt, embeds: [embed] })

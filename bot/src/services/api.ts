@@ -113,29 +113,23 @@ async function imageToImage(imageToImageRequest: ImageToImageRequest): Promise<t
 
 interface TextToImageTask extends TextToImageRequest {
     task_id: string,
+    steps_completed: number,
+    position: number
 }
 
 interface TextToVideoTask extends TextToVideoRequest {
     task_id: string,
+    steps_completed: number,
+    position: number
 }
 
-
-export enum TaskStage {
-    PENDING = "PENDING",
-    PROCESSING = "PROCESSING",
-    COMPLETE = "COMPLETE",
-    NOT_FOUND = "NOT FOUND"
+interface ImageToImageTask extends ImageToImageRequest {
+    task_id: string,
+    steps_completed: number,
+    position: number
 }
 
-export class TaskState {
-    task!: TextToImageTask
-    stage!: TaskStage
-    steps_completed!: number
-    position!: number
-}
-
-
-async function result(submissionId: typeof uuidv4, extension: string, callback?: (state: TaskState) => unknown): Promise<string> {
+async function result(submissionId: typeof uuidv4, extension: string, callback?: () => unknown): Promise<string> {
     const config: AxiosRequestConfig = {
         maxRedirects: 0,
         params: {
@@ -148,8 +142,8 @@ async function result(submissionId: typeof uuidv4, extension: string, callback?:
     while (true) {
         await wait.setTimeout(4000);
         try {
-            const state = await http.get<TaskState>('/status', config)
-            if (callback) callback(state.data)
+            const status = await http.get('/status', config)
+            if (callback) callback()
         } catch (error) {
             if (error instanceof AxiosError && error.response?.status == 303) {
                 break
