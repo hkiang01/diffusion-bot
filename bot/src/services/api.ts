@@ -14,6 +14,10 @@ async function getTextToImageModels(): Promise<string[]> {
     return await getModels("TextToImageModel")
 }
 
+async function getTextToVideoModels(): Promise<string[]> {
+    return await getModels("TextToVideoModel")
+}
+
 async function getImageToImageModels(): Promise<string[]> {
     return await getModels("ImageToImageModel")
 }
@@ -48,6 +52,10 @@ export interface TextToImageRequest extends BaseRequest {
     height: number,
 }
 
+export interface TextToVideoRequest extends BaseRequest {
+
+}
+
 export interface ImageToImageRequest extends BaseRequest {
     image_url: string
     strength?: number
@@ -58,6 +66,22 @@ async function textToImage(textToImageRequest: TextToImageRequest): Promise<type
     let resp
     try {
         resp = await http.post<typeof uuidv4>('/text-to-image', textToImageRequest)
+
+    } catch (error) {
+        if (error instanceof AxiosError && error.response?.status == 422) {
+            throw Error(JSON.stringify(error.response.data))
+        } else {
+            throw error
+        }
+    }
+    const data = resp.data;
+    return data
+}
+
+async function textToVideo(textToVideoRequest: TextToVideoRequest): Promise<typeof uuidv4> {
+    let resp
+    try {
+        resp = await http.post<typeof uuidv4>('/text-to-video', textToVideoRequest)
 
     } catch (error) {
         if (error instanceof AxiosError && error.response?.status == 422) {
@@ -91,6 +115,11 @@ interface TextToImageTask extends TextToImageRequest {
     task_id: string,
 }
 
+interface TextToVideoTask extends TextToVideoRequest {
+    task_id: string,
+}
+
+
 export enum TaskStage {
     PENDING = "PENDING",
     PROCESSING = "PROCESSING",
@@ -106,7 +135,7 @@ export class TaskState {
 }
 
 
-async function result(submissionId: typeof uuidv4, callback?: (state: TaskState) => unknown): Promise<string> {
+async function result(submissionId: typeof uuidv4, extension: string, callback?: (state: TaskState) => unknown): Promise<string> {
     const config: AxiosRequestConfig = {
         maxRedirects: 0,
         params: {
@@ -130,7 +159,7 @@ async function result(submissionId: typeof uuidv4, callback?: (state: TaskState)
     }
 
     // get result
-    const path = `${OUTPUTS_DIR}/${submissionId}.png`;
+    const path = `${OUTPUTS_DIR}/${submissionId}${extension}`;
     config.responseType = 'stream'
     const { data } = await http.get<Readable>('/result', config)
     const writeStream = fs.createWriteStream(path)
@@ -153,8 +182,10 @@ const API = {
     deleteResult,
     getImageToImageModels,
     getTextToImageModels,
+    getTextToVideoModels,
     imageToImage,
     textToImage,
+    textToVideo,
     result
 }
 

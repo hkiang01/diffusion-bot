@@ -1,6 +1,7 @@
 import { Interaction } from 'discord.js';
 import { Buttons, COMMAND_NAME, Commands, Selects } from './constants';
 import { textToImageButtonHandler, textToImageCommandHandler } from './handlers/textToImage';
+import { textToVideoButtonHandler, textToVideoCommandHandler } from './handlers/textToVideo';
 import { imageToImageHandler } from './handlers/imageToImage';
 import { refineHandler } from './handlers/refine';
 
@@ -22,6 +23,9 @@ export async function interactionHandler(interaction: Interaction) {
             switch (interaction.options.getSubcommand()) {
                 case Commands.TextToImage:
                     await textToImageCommandHandler(interaction, channel);
+                    break;
+                case Commands.TextToVideo:
+                    await textToVideoCommandHandler(interaction, channel);
                     break;
                 case Commands.ImageToimage:
                     await imageToImageHandler(interaction, channel);

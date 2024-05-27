@@ -55,8 +55,6 @@ async def text_to_video(
     task = api.schemas.TextToVideoTask(
         model=text_to_video_request.model,
         prompt=text_to_video_request.prompt,
-        width=text_to_video_request.width,
-        height=text_to_video_request.height,
         num_inference_steps=text_to_video_request.num_inference_steps,
         callback_steps=text_to_video_request.callback_steps
     )
@@ -126,18 +124,22 @@ async def status(
 
 @app.get("/result")
 async def result(task_id: uuid.UUID) -> fastapi.responses.FileResponse:
-    image_path = api.tasks.PredictTaskQueue.image_path(image_id=task_id)
-    if not os.path.exists(path=image_path):
+    image_path = api.tasks.PredictTaskQueue.image_path(task_id=task_id)
+    gif_path = api.tasks.PredictTaskQueue.gif_path(task_id=task_id)
+    if os.path.exists(path=image_path):
+        return fastapi.responses.FileResponse(image_path)
+    elif os.path.exists(path=gif_path):
+        return fastapi.responses.FileResponse(gif_path)
+    else:
         return fastapi.responses.PlainTextResponse(
             f"Image {task_id} does not exist",
             status_code=404,
         )
-    return fastapi.responses.FileResponse(image_path)
 
 
 @app.delete("/result")
 async def delete_result(task_id: uuid.UUID) -> str:
-    image_path = api.tasks.PredictTaskQueue.image_path(image_id=task_id)
+    image_path = api.tasks.PredictTaskQueue.image_path(task_id=task_id)
     if os.path.exists(image_path):
         os.unlink(image_path)
     return "deleted"

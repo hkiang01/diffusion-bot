@@ -51,9 +51,10 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 position = list(self._states.keys()).index(task_id)
                 state.position = position
         except KeyError as exc:
-            image_path = self.image_path(image_id=task_id)
-            if os.path.exists(path=image_path):
-                return image_path
+            if self.image_exists(task_id=task_id):
+                return self.image_path(task_id=task_id)
+            elif self.gif_exists(task_id=task_id):
+                return self.gif_path(task_id=task_id)
             else:
                 raise exc
 
@@ -87,18 +88,17 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 callback_steps=task.callback_steps,
                 callback=_callback,
             )
-            self.save_image(image=image, image_id=task.task_id)
+            self.save_image(image=image, task_id=task.task_id)
         elif isinstance(task, api.schemas.TextToVideoTask):
             model_instance: api.models.model.TextToVideoModel
             images = model_instance.predict_text_to_video(
                 prompt=task.prompt,
+                guidance_scale=task.guidance_scale,
                 num_inference_steps=task.num_inference_steps,
-                width=task.width,
-                height=task.height,
                 callback_steps=task.callback_steps,
-                callback=_callback,
+                callback=_callback
             )
-            self.save_gif(images=images, image_id=task.task_id)
+            self.save_gif(images=images, task_id=task.task_id)
         elif isinstance(task, api.schemas.ImageToImageTask):
             model_instance: api.models.model.ImageToImageModel
             image = model_instance.predict_image_to_image(
@@ -110,7 +110,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 strength=task.strength,
                 guidance_scale=task.guidance_scale,
             )
-            self.save_image(image=image, image_id=task.task_id)
+            self.save_image(image=image, task_id=task.task_id)
         else:
             raise RuntimeError(f"Unexpected Task type {type(task)}")
 

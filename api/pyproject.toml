@@ -6,8 +6,8 @@ authors = ["Harrison Kiang <hkiang01@gmail.com>"]
 package-mode = false
 
 [[tool.poetry.source]]
-name = "cu121"
-url = "https://download.pytorch.org/whl/cu121"
+name = "cu118"
+url = "https://download.pytorch.org/whl/cu118"
 priority = "explicit"
 
 # see https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/ffd13a1d2ed00b2bbcf5d78c2a347313a3b556c8/README.md#%F0%9F%A7%A8-diffusers
@@ -25,7 +25,7 @@ xformers = { version = "*" }
 
 # see https://pytorch.org/get-started/locally/
 # torch = { version = "^2.0.1" } # cpu
-torch = { version = "^2.0.1", source = "cu121" } # gpu
+torch = { version = "^2.0.1", source = "cu118" } # gpu
 
 
 [tool.poetry.group.dev.dependencies]

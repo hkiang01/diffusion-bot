@@ -30,8 +30,6 @@ class TextToVideoModel(Model, api.utils.image.ImageUtilsMixin):
     def predict_text_to_video(
         self,
         prompt: str,
-        width: int,
-        height: int,
         callback_steps: int,
         num_inference_steps: int | None = None,
         callback: typing.Optional[

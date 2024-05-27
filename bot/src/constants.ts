@@ -22,6 +22,7 @@ export const OUTPUTS_DIR = 'outputs'
 export const COMMAND_NAME = 'diffusion-bot'
 export enum Commands {
     TextToImage = 'text-to-image',
+    TextToVideo = 'text-to-video',
     ImageToimage = 'image-to-image',
 }
 export enum Selects {

@@ -57,22 +57,16 @@ class TextToImageRequest(BaseRequest):
             raise ValueError(f"{field_name} must be divisible by 8")
         return v
 
+class TextToVideoNumInferenceSteps(enum.IntEnum):
+    # see https://huggingface.co/ByteDance/AnimateDiff-Lightning/blob/a9938907943a08e0f3dec0802c7515b13514552b/README.md#animatediff-lightning  # noqa: E501
+    One = 1
+    Two = 2
+    Four = 4
+    Eight = 8
 class TextToVideoRequest(BaseRequest):
     model: TextToVideoModelsEnum = default_text_to_video_model
-    # can change defaults if your GPU has the allowed memory
-    width: pydantic.conint(ge=8, le=2560) = 1024
-    height: pydantic.conint(ge=8, le=1440) = 1024
-
-    @pydantic.field_validator("width", "height")
-    @classmethod
-    def dimensions_divisible_by_8(
-        cls, v: int, info: pydantic.FieldValidationInfo
-    ) -> str:
-        field_name = info.field_name
-        if v % 8 != 0:
-            raise ValueError(f"{field_name} must be divisible by 8")
-        return v
-
+    guidance_scale: float | None = 1.0
+    num_inference_steps: TextToVideoNumInferenceSteps
 
 
 class ImageToImageRequest(BaseRequest):
@@ -100,7 +94,7 @@ class TaskStage(enum.StrEnum):
 
 
 class TaskState(pydantic.BaseModel):
-    task: TextToImageTask | ImageToImageTask
+    task: TextToImageTask | ImageToImageTask | TextToVideoTask
     stage: TaskStage = TaskStage.NOT_FOUND
     steps_completed: int = 0
     position: int = -1

@@ -64,7 +64,7 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
     // actually start the polling
     const start = new Date().getTime()
     const submissionId = await API.imageToImage(imageToImageRequest)
-    const path = await API.result(submissionId, callback)
+    const path = await API.result(submissionId, ".png", callback)
 
     // send the result to the channel
     // see https://discordjs.guide/popular-topics/embeds.html#attaching-images
