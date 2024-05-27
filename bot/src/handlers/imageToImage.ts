@@ -2,7 +2,7 @@ import { AttachmentBuilder, Channel, ChatInputCommandInteraction, EmbedBuilder, 
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
 import { Commands, Fields } from "../constants";
-import { generateRedrawButton, generateRefinerSelectActionRow } from "./utils";
+import { generateRedrawImageButton, generateRefineImageSelectActionRow } from "./utils";
 
 export async function imageToImageHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -77,8 +77,8 @@ export async function imageToImageHandler(interaction: ChatInputCommandInteracti
 
         ])
         .setImage(`attachment://${submissionId}.png`)
-    const selectActionRow = await generateRefinerSelectActionRow()
-    const redrawButtonRow = generateRedrawButton()
+    const selectActionRow = await generateRefineImageSelectActionRow()
+    const redrawButtonRow = generateRedrawImageButton()
     await message.edit({ content: prompt, embeds: [embed], files: [file], components: [selectActionRow, redrawButtonRow] })
 
     // cleanup

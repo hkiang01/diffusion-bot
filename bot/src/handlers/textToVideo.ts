@@ -2,7 +2,7 @@ import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteract
 import fs from 'fs';
 import API, { TextToVideoRequest, TaskState } from '../services/api';
 import { Buttons, Commands, Fields } from "../constants";
-import { generateRedrawButton, generateRefinerSelectActionRow } from "./utils";
+import { generateRecreateVideoButton, generateRefineImageSelectActionRow } from "./utils";
 
 export async function textToVideoCommandHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -19,15 +19,11 @@ export async function textToVideoCommandHandler(interaction: ChatInputCommandInt
     const prompt = interaction.options.getString("prompt", true);
     const author = interaction.user.displayName;
     const model = interaction.options.getString("model", true)
-    const width = interaction.options.getInteger("width", false) || 1024
-    const height = interaction.options.getInteger("height", false) || 1024
     const numInferenceSteps = interaction.options.getInteger("num_inference_steps", false) || undefined;
 
     const textToVideoRequest: TextToVideoRequest = {
         model: model,
         prompt: prompt,
-        width: width,
-        height: height,
         num_inference_steps: numInferenceSteps,
     }
     await processTextToVideoRequest(textToVideoRequest, author, channel, deferredReply)
@@ -56,16 +52,14 @@ export async function textToVideoButtonHandler(interaction: ButtonInteraction, c
     const height = originalEmbed.image?.height;
     const numInferenceSteps = fields.find(f => f.name == Fields.NumInferenceSteps)?.value;
 
-    if (!model || !width || !height || !numInferenceSteps || !author) {
-        await interaction.editReply({ content: `Error while processing ${Buttons.ReDraw}: ` + 'Unable to resolve model or width or height or numInferenceSteps or author' })
+    if (!model || !numInferenceSteps || !author) {
+        await interaction.editReply({ content: `Error while processing ${Buttons.ReDrawImage}: ` + 'Unable to resolve model or width or height or numInferenceSteps or author' })
         return
     }
 
     const textToVideoRequest: TextToVideoRequest = {
         model: model,
         prompt: prompt,
-        width: width,
-        height: height,
         num_inference_steps: numInferenceSteps != "N/A" ? parseInt(numInferenceSteps) : undefined,
     }
     await processTextToVideoRequest(textToVideoRequest, author, channel, deferredReply)
@@ -118,9 +112,8 @@ async function processTextToVideoRequest(textToVideoRequest: TextToVideoRequest,
         .setImage(`attachment://${submissionId}.png`)
 
 
-    const selectActionRow = await generateRefinerSelectActionRow()
-    const redrawButtonRow = generateRedrawButton()
-    await message.edit({ content: textToVideoRequest.prompt, embeds: [embed], files: [file], components: [redrawButtonRow, selectActionRow] })
+    const recreateButton = generateRecreateVideoButton()
+    await message.edit({ content: textToVideoRequest.prompt, embeds: [embed], files: [file], components: [recreateButton] })
 
     // cleanup
     await new Promise(resolve => fs.unlink(path, resolve))

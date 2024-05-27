@@ -29,10 +29,12 @@ export enum Selects {
     RefinerModel = 'refiner-model',
 }
 export enum Buttons {
-    ReDraw = 'Redraw'
+    ReDrawImage = 'RedrawImage',
+    ReCreateVideo = 'ReCreateVideo'
 }
 export enum Emojis {
-    ReDraw = '🔄'
+    ReDrawImage = '🖌️',
+    ReCreateVideo = '🎥',
 }
 export enum Fields {
     Author = "Author",

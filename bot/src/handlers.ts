@@ -49,8 +49,11 @@ export async function interactionHandler(interaction: Interaction) {
 
         try {
             switch (interaction.customId) {
-                case Buttons.ReDraw:
+                case Buttons.ReDrawImage:
                     await textToImageButtonHandler(interaction, channel);
+                    break;
+                case Buttons.ReCreateVideo:
+                    await textToVideoButtonHandler(interaction, channel);
                     break;
                 default:
                     await interaction.followUp({ ephemeral: true, content: 'Unrecognized button' });

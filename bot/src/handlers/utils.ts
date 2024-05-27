@@ -2,7 +2,7 @@ import { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilde
 import { Buttons, Emojis, Selects } from "../constants";
 import API from "../services/api";
 
-export async function generateRefinerSelectActionRow(): Promise<ActionRowBuilder<StringSelectMenuBuilder>> {
+export async function generateRefineImageSelectActionRow(): Promise<ActionRowBuilder<StringSelectMenuBuilder>> {
     const imageToImageModels = await API.getImageToImageModels()
     const refinerModelSelect = new StringSelectMenuBuilder()
         .setCustomId(Selects.RefinerModel)
@@ -17,11 +17,22 @@ export async function generateRefinerSelectActionRow(): Promise<ActionRowBuilder
     return row
 }
 
-export function generateRedrawButton(): ActionRowBuilder<ButtonBuilder> {
+export function generateRedrawImageButton(): ActionRowBuilder<ButtonBuilder> {
     const button = new ButtonBuilder()
-        .setCustomId(Buttons.ReDraw)
-        .setLabel(Buttons.ReDraw)
-        .setEmoji(Emojis.ReDraw)
+        .setCustomId(Buttons.ReDrawImage)
+        .setLabel(Buttons.ReDrawImage)
+        .setEmoji(Emojis.ReDrawImage)
+        .setStyle(ButtonStyle.Primary)
+    const row = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(button);
+    return row
+}
+
+export function generateRecreateVideoButton(): ActionRowBuilder<ButtonBuilder> {
+    const button = new ButtonBuilder()
+        .setCustomId(Buttons.ReCreateVideo)
+        .setLabel(Buttons.ReCreateVideo)
+        .setEmoji(Emojis.ReCreateVideo)
         .setStyle(ButtonStyle.Primary)
     const row = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(button);

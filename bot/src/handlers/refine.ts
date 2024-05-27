@@ -2,7 +2,7 @@ import { AttachmentBuilder, Channel, EmbedBuilder, Message, StringSelectMenuInte
 import fs from 'fs';
 import API, { ImageToImageRequest, TaskState } from '../services/api';
 import { Fields, Selects } from "../constants";
-import { generateRedrawButton, generateRefinerSelectActionRow } from "./utils";
+import { generateRedrawImageButton, generateRefineImageSelectActionRow } from "./utils";
 
 export async function refineHandler(interaction: StringSelectMenuInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -86,8 +86,8 @@ export async function refineHandler(interaction: StringSelectMenuInteraction, ch
             { name: Fields.NumInferenceSteps, value: numInferenceSteps?.toString() || "N/A" },
         ])
         .setImage(`attachment://${submissionId}.png`)
-    const selectActionRow = await generateRefinerSelectActionRow()
-    const redrawButtonRow = generateRedrawButton()
+    const selectActionRow = await generateRefineImageSelectActionRow()
+    const redrawButtonRow = generateRedrawImageButton()
     await message.edit({ content: prompt, embeds: [embed], files: [file], components: [redrawButtonRow, selectActionRow] })
 
     // cleanup

@@ -2,7 +2,7 @@ import { AttachmentBuilder, ButtonInteraction, Channel, ChatInputCommandInteract
 import fs from 'fs';
 import API, { TextToImageRequest, TaskState } from '../services/api';
 import { Buttons, Commands, Fields } from "../constants";
-import { generateRedrawButton, generateRefinerSelectActionRow } from "./utils";
+import { generateRedrawImageButton, generateRefineImageSelectActionRow } from "./utils";
 
 export async function textToImageCommandHandler(interaction: ChatInputCommandInteraction, channel: Channel) {
     // tell discord that we got the interaction
@@ -57,7 +57,7 @@ export async function textToImageButtonHandler(interaction: ButtonInteraction, c
     const numInferenceSteps = fields.find(f => f.name == Fields.NumInferenceSteps)?.value;
 
     if (!model || !width || !height || !numInferenceSteps || !author) {
-        await interaction.editReply({ content: `Error while processing ${Buttons.ReDraw}: ` + 'Unable to resolve model or width or height or numInferenceSteps or author' })
+        await interaction.editReply({ content: `Error while processing ${Buttons.ReDrawImage}: ` + 'Unable to resolve model or width or height or numInferenceSteps or author' })
         return
     }
 
@@ -118,8 +118,8 @@ async function processTextToImageRequest(textToImageRequest: TextToImageRequest,
         .setImage(`attachment://${submissionId}.png`)
 
 
-    const selectActionRow = await generateRefinerSelectActionRow()
-    const redrawButtonRow = generateRedrawButton()
+    const selectActionRow = await generateRefineImageSelectActionRow()
+    const redrawButtonRow = generateRedrawImageButton()
     await message.edit({ content: textToImageRequest.prompt, embeds: [embed], files: [file], components: [redrawButtonRow, selectActionRow] })
 
     // cleanup
