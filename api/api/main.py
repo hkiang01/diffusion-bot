@@ -140,8 +140,11 @@ async def result(task_id: uuid.UUID) -> fastapi.responses.FileResponse:
 @app.delete("/result")
 async def delete_result(task_id: uuid.UUID) -> str:
     image_path = api.tasks.PredictTaskQueue.image_path(task_id=task_id)
+    gif_path = api.tasks.PredictTaskQueue.gif_path(task_id=task_id)
     if os.path.exists(image_path):
         os.unlink(image_path)
+    if os.path.exists(path=gif_path):
+        os.unlink(gif_path)
     return "deleted"
 
 
