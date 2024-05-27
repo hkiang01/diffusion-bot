@@ -48,6 +48,32 @@ async def text_to_image(
     )
 
 
+@app.post("/text-to-video", status_code=http.HTTPStatus.ACCEPTED)
+async def text_to_video(
+    text_to_video_request: api.schemas.TextToVideoRequest,
+) -> uuid.UUID:
+    task = api.schemas.TextToVideoTask(
+        model=text_to_video_request.model,
+        prompt=text_to_video_request.prompt,
+        width=text_to_video_request.width,
+        height=text_to_video_request.height,
+        num_inference_steps=text_to_video_request.num_inference_steps,
+        callback_steps=text_to_video_request.callback_steps
+    )
+
+    try:
+        task_id = api.tasks.PredictTaskQueue.submit(task=task)
+    except queue.Full as exc:
+        raise fastapi.exceptions.HTTPException(
+            detail=str(exc),
+            status_code=http.HTTPStatus.TOO_MANY_REQUESTS,
+            headers={"Retry-After": "60"},
+        )
+    return fastapi.responses.PlainTextResponse(
+        content=str(task_id),
+        status_code=http.HTTPStatus.ACCEPTED,
+    )
+
 @app.post("/image-to-image", status_code=http.HTTPStatus.ACCEPTED)
 async def image_to_image(
     image_to_image_request: api.schemas.ImageToImageRequest,

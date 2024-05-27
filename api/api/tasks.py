@@ -18,7 +18,7 @@ logger.setLevel(os.getenv("LOG_LEVEL", logging.WARNING))
 class _PredictTaskQueue(ImageUtilsMixin):
     def __init__(self, max_size: int = 10):
         self._queue: queue.Queue[
-            api.schemas.ImageToImageTask | api.schemas.TextToImageTask
+            api.schemas.ImageToImageTask | api.schemas.TextToImageTask | api.schemas.TextToVideoTask
         ] = queue.Queue(maxsize=max_size)
 
         self._states_lock = threading.Lock()
@@ -28,7 +28,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
         threading.Thread(target=self._worker).start()
 
     def submit(
-        self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask
+        self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask |  api.schemas.TextToVideoTask
     ) -> uuid.UUID:
         logger.info(f"Submitting {task.task_id}")
         self._queue.put_nowait(task)
@@ -65,7 +65,7 @@ class _PredictTaskQueue(ImageUtilsMixin):
         )
 
     def _predict(
-        self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask
+        self, task: api.schemas.ImageToImageTask | api.schemas.TextToImageTask |  api.schemas.TextToVideoTask
     ):
         model = task.model
         model_instance: api.models.model.Model = _get_model_instance(requested_model=model)
@@ -87,6 +87,18 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 callback_steps=task.callback_steps,
                 callback=_callback,
             )
+            self.save_image(image=image, image_id=task.task_id)
+        elif isinstance(task, api.schemas.TextToVideoTask):
+            model_instance: api.models.model.TextToVideoModel
+            images = model_instance.predict_text_to_video(
+                prompt=task.prompt,
+                num_inference_steps=task.num_inference_steps,
+                width=task.width,
+                height=task.height,
+                callback_steps=task.callback_steps,
+                callback=_callback,
+            )
+            self.save_gif(images=images, image_id=task.task_id)
         elif isinstance(task, api.schemas.ImageToImageTask):
             model_instance: api.models.model.ImageToImageModel
             image = model_instance.predict_image_to_image(
@@ -98,10 +110,11 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 strength=task.strength,
                 guidance_scale=task.guidance_scale,
             )
+            self.save_image(image=image, image_id=task.task_id)
         else:
             raise RuntimeError(f"Unexpected Task type {type(task)}")
 
-        self.saveImage(image=image, image_id=task.task_id)
+        
 
     def _worker(self):
         while True:
@@ -129,10 +142,10 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 del self._states[task.task_id]
 
 
-def _get_model_instance(requested_model: api.schemas.TextToImageModelsEnum | api.schemas.ImageToImageModelsEnum) -> api.models.model.Model:
+def _get_model_instance(requested_model: api.schemas.TextToImageModelsEnum | api.schemas.ImageToImageModelsEnum | api.schemas.TextToVideoModelsEnum) -> api.models.model.Model:
     model_class = next(
         cls
-        for cls in api.models.model.TextToImageModel.__subclasses__() + api.models.model.ImageToImageModel.__subclasses__()
+        for cls in api.models.model.TextToImageModel.__subclasses__() + api.models.model.ImageToImageModel.__subclasses__() + api.models.model.TextToVideoModel.__subclasses__()
         if cls.__name__.lower() == requested_model
     )
     model: api.models.model.Model = model_class()
