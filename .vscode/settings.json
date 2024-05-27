@@ -5,9 +5,6 @@
         "${workspaceFolder}/bot"
     ],
     "jest.rootPath": "${workspaceFolder}/bot",
-    "python.testing.pytestArgs": [
-        "api/tests"
-    ],
     "python.testing.cwd": "${workspaceFolder}/api",
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
