@@ -31,7 +31,6 @@ async def text_to_image(
         width=text_to_image_request.width,
         height=text_to_image_request.height,
         num_inference_steps=text_to_image_request.num_inference_steps,
-        callback_steps=text_to_image_request.callback_steps
     )
 
     try:
@@ -56,7 +55,6 @@ async def text_to_video(
         model=text_to_video_request.model,
         prompt=text_to_video_request.prompt,
         num_inference_steps=text_to_video_request.num_inference_steps,
-        callback_steps=text_to_video_request.callback_steps
     )
 
     try:
@@ -83,7 +81,6 @@ async def image_to_image(
         image_url=image_to_image_request.image_url,
         strength=image_to_image_request.strength,
         guidance_scale=image_to_image_request.guidance_scale,
-        callback_steps=image_to_image_request.callback_steps
     )
 
     try:

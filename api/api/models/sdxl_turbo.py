@@ -27,18 +27,12 @@ class SDXLTurbo(
         prompt: str,
         width: int,
         height: int,
-        callback_steps: int,
         num_inference_steps: int | None = None,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
     ) -> PIL.Image.Image:
         kwargs = {
             "prompt": prompt,
-            "callback": callback,
             "width": width,
             "height": height,
-            "callback_steps": callback_steps
         }
         if num_inference_steps:
             kwargs["num_inference_steps"] = num_inference_steps
@@ -55,13 +49,9 @@ class SDXLTurbo(
         self,
         prompt: str,
         image_url: str,
-        callback_steps: int,
         num_inference_steps: int | None = None,
         strength: float | None = None,
         guidance_scale: float | None = None,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
     ) -> PIL.Image.Image:
         image = diffusers.utils.load_image(image=image_url)
 
@@ -71,10 +61,7 @@ class SDXLTurbo(
         self._load(task=Task.IMAGE_TO_IMAGE)
         kwargs = {
             "prompt": prompt,
-            "callback": callback,
-            "image": image,
-            "callback_steps": callback_steps
-
+            "image": image
         }
         if strength:
             kwargs["strength"] = strength

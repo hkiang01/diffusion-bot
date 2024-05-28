@@ -50,9 +50,6 @@ class _PredictTaskQueue(ImageUtilsMixin):
         model = task.model
         model_instance: api.models.model.Model = _get_model_instance(requested_model=model)
 
-        def _callback(step: int, timestep: int, latents: torch.FloatTensor):
-            task.steps_completed = step + 1
-
         if isinstance(task, api.schemas.TextToImageTask):
             model_instance: api.models.model.TextToImageModel
             image = model_instance.predict_text_to_image(
@@ -60,8 +57,6 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 num_inference_steps=task.num_inference_steps,
                 width=task.width,
                 height=task.height,
-                callback_steps=task.callback_steps,
-                callback=_callback,
             )
             self.save_image(image=image, task_id=task.task_id)
         elif isinstance(task, api.schemas.TextToVideoTask):
@@ -70,8 +65,6 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 prompt=task.prompt,
                 guidance_scale=task.guidance_scale,
                 num_inference_steps=task.num_inference_steps,
-                callback_steps=task.callback_steps,
-                callback=_callback
             )
             self.save_gif(images=images, task_id=task.task_id)
         elif isinstance(task, api.schemas.ImageToImageTask):
@@ -80,8 +73,6 @@ class _PredictTaskQueue(ImageUtilsMixin):
                 prompt=task.prompt,
                 num_inference_steps=task.num_inference_steps,
                 image_url=str(task.image_url),
-                callback_steps=task.callback_steps,
-                callback=_callback,
                 strength=task.strength,
                 guidance_scale=task.guidance_scale,
             )

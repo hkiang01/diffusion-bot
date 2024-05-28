@@ -18,11 +18,7 @@ class TextToImageModel(Model, api.utils.image.ImageUtilsMixin):
         prompt: str,
         width: int,
         height: int,
-        callback_steps: int,
         num_inference_steps: int | None = None,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
     ) -> PIL.Image.Image:
         raise NotImplementedError()
 
@@ -30,11 +26,7 @@ class TextToVideoModel(Model, api.utils.image.ImageUtilsMixin):
     def predict_text_to_video(
         self,
         prompt: str,
-        callback_steps: int,
         num_inference_steps: int | None = None,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
     ) -> typing.List[PIL.Image.Image]:
         raise NotImplementedError()
 
@@ -43,13 +35,9 @@ class ImageToImageModel(Model, api.utils.image.ImageUtilsMixin):
         self,
         prompt: str,
         image_url: str,
-        callback_steps: int,
         num_inference_steps: int | None = None,
         strength: float | None = None,
-        guidance_scale: float | None = None,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
+        guidance_scale: float | None = None
     ) -> PIL.Image.Image:
         raise NotImplementedError()
 

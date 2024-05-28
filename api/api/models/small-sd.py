@@ -21,19 +21,12 @@ class SmallSD(api.models.model.TextToImageModel):
         prompt: str,
         width: int,
         height: int,
-        callback_steps: int,
-
-        num_inference_steps: int | None = None,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
+        num_inference_steps: int | None = None
     ) -> PIL.Image.Image:
         kwargs = {
             "prompt": prompt,
-            "callback": callback,
             "width": width,
             "height": height,
-            "callback_steps": callback_steps
         }
         if num_inference_steps:
             kwargs["num_inference_steps"] = num_inference_steps

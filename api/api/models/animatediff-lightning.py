@@ -24,17 +24,11 @@ class AnimateDiffLightning(
         self,
         prompt: str,
         guidance_scale: float,
-        callback_steps: int,
         num_inference_steps: int,
-        callback: typing.Optional[
-            typing.Callable[[int, int, torch.FloatTensor], None]
-        ] = None,
     ) -> typing.List[PIL.Image.Image]:
         kwargs = {
             "prompt": prompt,
             "guidance_scale": guidance_scale,
-            "callback": callback,
-            "callback_steps": callback_steps,
             "num_inference_steps": num_inference_steps
         }
         ##########################
